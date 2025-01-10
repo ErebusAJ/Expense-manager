@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 
-	// "github.com/ErebusAJ/expense-manager/config"
 	"github.com/ErebusAJ/expense-manager/internal/handlers"
 	"github.com/ErebusAJ/expense-manager/internal/utils"
 	"github.com/gin-gonic/gin"

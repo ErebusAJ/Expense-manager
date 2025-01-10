@@ -36,3 +36,4 @@ Start up the server with gin
 2. Now connecting DB
 
 Write the main func in utils
+
