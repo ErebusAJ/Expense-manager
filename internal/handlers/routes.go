@@ -5,5 +5,4 @@ import (
 )
 
 func RegisterRoutes(r *gin.Engine){
-	r.GET("auth/get-albums", getAlbums)
 }
