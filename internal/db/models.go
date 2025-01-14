@@ -16,4 +16,6 @@ type User struct {
 	Email        string
 	PasswordHash string
 	CreatedAt    sql.NullTime
+	TokenVersion sql.NullInt32
+	LastLoggedIn sql.NullTime
 }

@@ -34,7 +34,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, email, password_hash, created_at FROM users
+SELECT id, name, email, password_hash, created_at, token_version, last_logged_in FROM users
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -52,6 +52,8 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.Email,
 			&i.PasswordHash,
 			&i.CreatedAt,
+			&i.TokenVersion,
+			&i.LastLoggedIn,
 		); err != nil {
 			return nil, err
 		}
@@ -66,8 +68,25 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, password_hash FROM users
+WHERE email=$1
+`
+
+type GetUserByEmailRow struct {
+	ID           uuid.UUID
+	PasswordHash string
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i GetUserByEmailRow
+	err := row.Scan(&i.ID, &i.PasswordHash)
+	return i, err
+}
+
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, password_hash, created_at FROM users
+SELECT id, name, email, password_hash, created_at, token_version, last_logged_in FROM users
 WHERE id = $1
 `
 
@@ -80,6 +99,8 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Email,
 		&i.PasswordHash,
 		&i.CreatedAt,
+		&i.TokenVersion,
+		&i.LastLoggedIn,
 	)
 	return i, err
 }

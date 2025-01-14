@@ -8,3 +8,7 @@ WHERE id = $1;
 
 -- name: GetAllUsers :many
 SELECT * FROM users;
+
+-- name: GetUserByEmail :one
+SELECT id, password_hash FROM users
+WHERE email=$1;
