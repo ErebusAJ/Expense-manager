@@ -18,8 +18,7 @@ type apiConfig struct{
 	DB *db.Queries
 }
 
-
-//User Routes
+// ROUTES
 func RegisterRoutes(r *gin.Engine){
 	//Establishing DB connections for handlers
 	DB, err := utils.ConnectDB()
@@ -37,17 +36,27 @@ func RegisterRoutes(r *gin.Engine){
 	r.POST("/v1/login", apiCfg.loginUser)
 
 	//JWT AUTHENTICATED ROUTES
+	// Secret key
 	godotenv.Load()
 	signKey := os.Getenv("SECRET_KEY")
 	if signKey == ""{
 		log.Printf("unable to fetch signed key")
 	}
 
-
+	//AUTH ROUTES
 	protected := r.Group("/auth")
 	protected.Use(middleware.AuthMiddleware(signKey))
 	{
 		protected.GET("/user", apiCfg.getAuthUser)
+		protected.DELETE("/user", apiCfg.deleteUser)
 	} 
+
+	//ADMIN PROTECTED ROUTES
+	r.POST("/admin/login", apiCfg.adminLogin)
+	adminProtected := r.Group("/admin")
+	adminProtected.Use(middleware.AdminMiddleware(signKey))
+	{
+		adminProtected.GET("/users", apiCfg.adminGetAllUsers)
+	}
 	// r.GET("/auth/user",)
 }

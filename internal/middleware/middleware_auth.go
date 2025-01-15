@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -18,8 +17,7 @@ func AuthMiddleware(tokenJWT string) gin.HandlerFunc{
 	return func(c *gin.Context){
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer "){
-			c.JSON(http.StatusUnauthorized, utils.MessageObj("authorization header missing"))
-			log.Printf("unable to find auth header")
+			utils.ErrorJSON(c, http.StatusUnauthorized, "invalid header", "unable to find auth header", nil)
 			c.Abort()
 			return
 		}
@@ -29,7 +27,7 @@ func AuthMiddleware(tokenJWT string) gin.HandlerFunc{
 			return []byte(tokenJWT), nil
 		} )
 		if err != nil{
-			c.JSON(http.StatusUnauthorized, utils.MessageObj("invalid token"))
+			utils.ErrorJSON(c, http.StatusUnauthorized, "invalid token", "invalid token", err)
 			c.Abort()
 			return
 		}
@@ -39,8 +37,9 @@ func AuthMiddleware(tokenJWT string) gin.HandlerFunc{
 
 		userID, err := uuid.Parse(userId)
 		if err != nil{
-			c.IndentedJSON(http.StatusInternalServerError, utils.MessageObj("internal error"))
-			log.Printf("error parsing user id to uuid %v \n", err)
+			utils.ErrorJSON(c, http.StatusInternalServerError, "internal error", "error parsing userid to uuid from body", err)
+			c.Abort()
+			return
 		}
 		c.Set("userID", userID)
 

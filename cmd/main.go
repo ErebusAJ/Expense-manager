@@ -28,7 +28,7 @@ func main(){
 	handlers.RegisterRoutes(r)
 	port := os.Getenv("PORT_NO")
 
-	log.Println("Starting server...")
+	log.Printf("\t\t Starting server... \n")
 
 	r.Run("localhost:"+port)
 

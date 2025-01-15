@@ -18,4 +18,5 @@ type User struct {
 	CreatedAt    sql.NullTime
 	TokenVersion sql.NullInt32
 	LastLoggedIn sql.NullTime
+	AccessLevel  string
 }

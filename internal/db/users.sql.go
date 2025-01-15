@@ -33,8 +33,18 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
+const deleteUserByEmail = `-- name: DeleteUserByEmail :exec
+DELETE FROM users
+WHERE id=$1
+`
+
+func (q *Queries) DeleteUserByEmail(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteUserByEmail, id)
+	return err
+}
+
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, email, password_hash, created_at, token_version, last_logged_in FROM users
+SELECT id, name, email, password_hash, created_at, token_version, last_logged_in, access_level FROM users
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -54,6 +64,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.CreatedAt,
 			&i.TokenVersion,
 			&i.LastLoggedIn,
+			&i.AccessLevel,
 		); err != nil {
 			return nil, err
 		}
@@ -69,24 +80,25 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, password_hash FROM users
+SELECT id, password_hash, access_level FROM users
 WHERE email=$1
 `
 
 type GetUserByEmailRow struct {
 	ID           uuid.UUID
 	PasswordHash string
+	AccessLevel  string
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i GetUserByEmailRow
-	err := row.Scan(&i.ID, &i.PasswordHash)
+	err := row.Scan(&i.ID, &i.PasswordHash, &i.AccessLevel)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, password_hash, created_at, token_version, last_logged_in FROM users
+SELECT id, name, email, password_hash, created_at, token_version, last_logged_in, access_level FROM users
 WHERE id = $1
 `
 
@@ -101,6 +113,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.CreatedAt,
 		&i.TokenVersion,
 		&i.LastLoggedIn,
+		&i.AccessLevel,
 	)
 	return i, err
 }

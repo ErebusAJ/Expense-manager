@@ -12,10 +12,11 @@ import (
 
 // GENERATE JWT
 // Function to generate JWT auth token
-func GenerateJWT(userID uuid.UUID) (string, error){
+func GenerateJWT(userID uuid.UUID, userRole string) (string, error){
 	//Token claims
 	claims := jwt.MapClaims{
 		"user_id"	: userID,
+		"user_role"	: userRole,
 		"exp"		: time.Now().Add(24 * time.Hour).Unix(), //24hrs expiration time
 		"iat"		: time.Now().Unix(), // Issued at time
 	}

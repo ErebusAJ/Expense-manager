@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/ErebusAJ/expense-manager/internal/db"
@@ -38,7 +37,7 @@ func(cfg *apiConfig) addUser(c *gin.Context){
 	//Hashing Password
 	hashPass, err := hashPassword(param.Password)
 	if err != nil{
-		log.Printf("error hashing password: %v", hashPass)
+		utils.ErrorJSON(c, http.StatusInternalServerError, "internal server error", "error hashing password", err)
 		return
 	}
 
@@ -49,8 +48,7 @@ func(cfg *apiConfig) addUser(c *gin.Context){
 		PasswordHash: hashPass ,
 	})
 	if err != nil{
-		c.IndentedJSON(http.StatusNotAcceptable, utils.MessageObj("error creating user"))
-		log.Printf("unable to create user: %v \n", err)
+		utils.ErrorJSON(c, http.StatusNotAcceptable, "error creating user", "unable to create user", err)
 		return
 	}
 
@@ -58,26 +56,9 @@ func(cfg *apiConfig) addUser(c *gin.Context){
 }
 
 
-// RETRIEVING AUTHENTICATED USERS DETAILS
-func(cfg *apiConfig) getAuthUser(c *gin.Context){
-	userId, exists := c.Get("userID")
-	if(!exists){
-		c.JSON(http.StatusUnauthorized, utils.MessageObj("unaauthorized"))
-		log.Println("unable to authorize user")
-		return
-	}
-
-	user, err := cfg.DB.GetUserByID(c, userId.(uuid.UUID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.MessageObj("error fetching user"))
-		log.Printf("unable to fetch user data %v \n", err)
-		return 
-	}
-
-	c.IndentedJSON(http.StatusOK, user)
-}
-
-// LOGIN 
+// LOGIN USER
+// Verifies the incoming payload containing email, password
+// If validated returns a JWT Auth token
 func(cfg *apiConfig) loginUser(c *gin.Context){
 	var loginInput struct{
 		Email		string		`json:"email" binding:"required,email"`
@@ -86,44 +67,33 @@ func(cfg *apiConfig) loginUser(c *gin.Context){
 
 	err := c.ShouldBindJSON(&loginInput)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, utils.MessageObj("error parsing json data"))
-		log.Printf("error parsing json data %v \n", err)
+		utils.ErrorJSON(c, http.StatusBadRequest, "invalid json body", "error parsing json data", err)
 		return 
 	}
 
 	email := loginInput.Email
-	if email == ""{
-		c.IndentedJSON(http.StatusBadRequest, utils.MessageObj("email error"))
-		log.Println("error parsing email form body")
-		return
-	}
-
 	password := loginInput.Password
-	if password == ""{
-		c.IndentedJSON(http.StatusBadRequest, utils.MessageObj("password error"))
-		log.Println("error parsing password from email")
+	if email == "" || password == ""{
+		utils.ErrorJSON(c, http.StatusBadRequest, "invalid json body", "error parsing email from body", nil)
 		return
 	}
 
-	var dbDetails db.GetUserByEmailRow
-	dbDetails, err = cfg.DB.GetUserByEmail(c, email)
+
+	dbDetails, err := cfg.DB.GetUserByEmail(c, email)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, utils.MessageObj("error retrieving password"))
-		log.Printf("error retrieving password form DB %v \n", err)
+		utils.ErrorJSON(c, http.StatusBadRequest, "invalid user", "error user not found", err)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(dbDetails.PasswordHash), []byte(password))
 	if err != nil{
-		c.IndentedJSON(http.StatusBadRequest, utils.MessageObj("failed to validate user"))
-		log.Printf("failed to validate user %v \n", err)
+		utils.ErrorJSON(c, http.StatusBadRequest, "validation failed", "invalud user details", err)
 		return 
 	}
 
-	token, err := utils.GenerateJWT(dbDetails.ID)
+	token, err := utils.GenerateJWT(dbDetails.ID, dbDetails.AccessLevel)
 	if err != nil{
-		c.IndentedJSON(http.StatusInternalServerError, utils.MessageObj("error generating token"))
-		log.Printf("error generating token %v \n", err)
+		utils.ErrorJSON(c, http.StatusInternalServerError, "error generating token", "error generating token", err)
 		return
 	}
 
@@ -131,15 +101,40 @@ func(cfg *apiConfig) loginUser(c *gin.Context){
 
 }
 
-// RETRIEVING ALL USERS
+// RETRIEVING AUTHENTICATED USERS DETAILS
+// Authentication is done via a AuthMiddleware using JWT 
+// Middleware passes the userid map claim as context to the handlers
+func(cfg *apiConfig) getAuthUser(c *gin.Context){
+	userId, exists := c.Get("userID")
+	if(!exists){
+		utils.ErrorJSON(c, http.StatusUnauthorized, "unauthorized", "unable to authorize user", nil)
+		return
+	}
 
-// func(cfg *apiConfig) getAllUsers(c *gin.Context){
-// 	users, err := cfg.DB.GetAllUsers(c)
-// 	if err != nil{
-// 		c.IndentedJSON(http.StatusInternalServerError, utils.MessageObj("cannot retrieve users"))
-// 		log.Printf("error retrieving users %v \n", err)
-// 		return
-// 	}
+	user, err := cfg.DB.GetUserByID(c, userId.(uuid.UUID))
+	if err != nil {
+		utils.ErrorJSON(c, http.StatusInternalServerError, "error fetching user", "unable to fetch user data", err)
+		return 
+	}
 
-// 	c.IndentedJSON(http.StatusFound, users)
-// }
+	c.IndentedJSON(http.StatusOK, user)
+}
+
+// DELETE USER IF AUTHENTICATED
+func(cfg *apiConfig) deleteUser(c *gin.Context){
+	tempID, exists := c.Get("userID")
+	if !exists{
+		utils.ErrorJSON(c, http.StatusBadRequest, "unauthorized", "unable to get userId from middleware", nil)
+		return
+	}
+
+	userID := tempID.(uuid.UUID)
+
+	err := cfg.DB.DeleteUserByEmail(c, userID)
+	if err != nil{
+		utils.ErrorJSON(c, http.StatusBadRequest, "error deleting user", "error deleting user", err)
+		return
+	}
+
+	c.IndentedJSON(http.StatusNoContent, utils.MessageObj("successfully deleted user"))
+}

@@ -71,3 +71,27 @@ Start up the server with gin
     - Create a **jwt.MapClaims** assign the userID to userID recieved as a parameter and two other keys expiration set to 24hrs and issued_at to time.Now()
     - Then once this is done we create a new instance of this map claim with signingmethodhs256 and load the **godotenv** to get the secretKey 
     - create a signedstring of token and return it
+
+## ***5. Authenticated Admin handlers***
+    
+We need endpoint routes for admin access for that we need to assign access levels, so we alter user table to add **access_level** field which will have user access by default.
+
+> I also had to change the JWT generater function to embed user role field in token
+
+One approach is we can use if conditions in our user handlers e.g if user.access == admin then we call admin function but it's not secure and can expose all users data to single user so we use seprate auth and handlers
+
+* **migrations/schema**:
+    - Write appropriate goose up/down query to alter the users table and add column **access_level**
+
+* **internal/middleware/middleware_admin**:
+    - Here we write the middleware to authenticate admin users 
+    almost similar to auth middleware just we pass two token claims to the handler from middleware **(userId, userRole)**
+
+* **internal/handlers/handler_admin.go**:
+    - **adminLogin**: similar to user login binds request body to a self defined struct **(email,password)** just we before comparing password hash we check if userID == adminID if not return error else go to check password. With all validated generate a authToken
+    - **adminGetAllUsers**: takes params from middleware userId, userRole and verify them from env which stores adminID and adminRole if validated return all users data
+
+* **internal/handlers/routes.go**:
+    - Add a new group **adminProtected** with path "/admin" add the middleware and then the routes we want to user here /users which calls adminGetAllUsers
+
+> A small optimization I did is everytime a methods err is not nill we need to return the error to client via c.IndentedJSON passing error code and obj and then a log for server which explains about the error breifly. So I creted a helper function in **internal/utils/err.go** which takes input ginContext, error code, client string, server string and error
