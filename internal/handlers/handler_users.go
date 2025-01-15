@@ -23,7 +23,7 @@ func hashPassword(password string)(string, error){
 	return string(hashedPassword), nil
 }
 
-func(cfg *apiConfig) addUser(c *gin.Context){
+func(cfg *apiConfig) registerUser(c *gin.Context){
 	type user struct{
 		Id 			uuid.UUID	`json:"id"`
 		Name		string		`json:"name"`
@@ -120,6 +120,67 @@ func(cfg *apiConfig) getAuthUser(c *gin.Context){
 	c.IndentedJSON(http.StatusOK, user)
 }
 
+//UPDATE USER DETAILS
+func(cfg *apiConfig) updateUserDetails(c *gin.Context){
+	var InputDetails struct{
+		Name		string 	`json:"name"`
+		Email		string	`json:"email"`
+		Password	string	`json:"password"`
+	}
+
+	err := c.ShouldBindJSON(&InputDetails)
+	if err != nil{
+		utils.ErrorJSON(c, http.StatusBadRequest, "invalid request body", "error binding request json body", err)
+		return 
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists{
+		utils.ErrorJSON(c, http.StatusInternalServerError, "internal error", "error retrieving user from midlleware", nil)
+		return
+	}
+
+	userDetails, err := cfg.DB.GetUserByID(c, userID.(uuid.UUID))
+	if err != nil{
+		utils.ErrorJSON(c, http.StatusInternalServerError, "internal error", "error getting users details from db", err)
+		return
+	}
+
+	// Checking if required field value exists in JSON body if not assign existing value from DB
+	if InputDetails.Name == ""{
+		InputDetails.Name = userDetails.Name
+	}
+
+	if InputDetails.Email == ""{
+		InputDetails.Email = userDetails.Email
+	}
+
+	if InputDetails.Password == ""{
+		InputDetails.Password = userDetails.PasswordHash
+	}else{
+		InputDetails.Password, err = hashPassword(InputDetails.Password)
+		if err != nil{
+			utils.ErrorJSON(c, http.StatusInternalServerError, "internal error", "error hashing password", err)
+			return
+		}
+	}
+
+	// Updating values
+	
+	err = cfg.DB.UpdateUserDetails(c, db.UpdateUserDetailsParams{
+		Name : InputDetails.Name,
+		PasswordHash: InputDetails.Password,
+		Email: InputDetails.Email,
+		ID: userID.(uuid.UUID),
+	})
+	if err != nil{
+		utils.ErrorJSON(c, 500, "unable to update user", "error updating user in db", err)
+		return 
+	}
+
+	c.IndentedJSON(http.StatusNoContent, utils.MessageObj("successfully updated user"))
+}
+
 // DELETE USER IF AUTHENTICATED
 func(cfg *apiConfig) deleteUser(c *gin.Context){
 	tempID, exists := c.Get("userID")
@@ -130,7 +191,7 @@ func(cfg *apiConfig) deleteUser(c *gin.Context){
 
 	userID := tempID.(uuid.UUID)
 
-	err := cfg.DB.DeleteUserByEmail(c, userID)
+	err := cfg.DB.DeleteUserByID(c, userID)
 	if err != nil{
 		utils.ErrorJSON(c, http.StatusBadRequest, "error deleting user", "error deleting user", err)
 		return

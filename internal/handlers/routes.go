@@ -32,7 +32,7 @@ func RegisterRoutes(r *gin.Engine){
 	}
 
 	// Routes
-	r.POST("/v1/user", apiCfg.addUser)
+	r.POST("/v1/user", apiCfg.registerUser)
 	r.POST("/v1/login", apiCfg.loginUser)
 
 	//JWT AUTHENTICATED ROUTES
@@ -48,6 +48,7 @@ func RegisterRoutes(r *gin.Engine){
 	protected.Use(middleware.AuthMiddleware(signKey))
 	{
 		protected.GET("/user", apiCfg.getAuthUser)
+		protected.PUT("/user", apiCfg.updateUserDetails)
 		protected.DELETE("/user", apiCfg.deleteUser)
 	} 
 
@@ -57,6 +58,8 @@ func RegisterRoutes(r *gin.Engine){
 	adminProtected.Use(middleware.AdminMiddleware(signKey))
 	{
 		adminProtected.GET("/users", apiCfg.adminGetAllUsers)
+		adminProtected.GET("/user/:id", apiCfg.adminGetUserByID)
+		adminProtected.DELETE("/user/:id", apiCfg.adminDeleteUserByID)
 	}
 	// r.GET("/auth/user",)
 }

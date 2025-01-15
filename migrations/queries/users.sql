@@ -13,6 +13,11 @@ SELECT * FROM users;
 SELECT id, password_hash, access_level FROM users
 WHERE email=$1;
 
--- name: DeleteUserByEmail :exec
+-- name: DeleteUserByID :exec
 DELETE FROM users
 WHERE id=$1;
+
+-- name: UpdateUserDetails :exec
+UPDATE users 
+SET name=$1, password_hash=$2, email=$3
+WHERE id=$4;

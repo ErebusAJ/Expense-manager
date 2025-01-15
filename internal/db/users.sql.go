@@ -33,13 +33,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 	return err
 }
 
-const deleteUserByEmail = `-- name: DeleteUserByEmail :exec
+const deleteUserByID = `-- name: DeleteUserByID :exec
 DELETE FROM users
 WHERE id=$1
 `
 
-func (q *Queries) DeleteUserByEmail(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUserByEmail, id)
+func (q *Queries) DeleteUserByID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteUserByID, id)
 	return err
 }
 
@@ -116,4 +116,27 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.AccessLevel,
 	)
 	return i, err
+}
+
+const updateUserDetails = `-- name: UpdateUserDetails :exec
+UPDATE users 
+SET name=$1, password_hash=$2, email=$3
+WHERE id=$4
+`
+
+type UpdateUserDetailsParams struct {
+	Name         string
+	PasswordHash string
+	Email        string
+	ID           uuid.UUID
+}
+
+func (q *Queries) UpdateUserDetails(ctx context.Context, arg UpdateUserDetailsParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserDetails,
+		arg.Name,
+		arg.PasswordHash,
+		arg.Email,
+		arg.ID,
+	)
+	return err
 }

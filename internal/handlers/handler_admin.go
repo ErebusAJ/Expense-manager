@@ -96,3 +96,42 @@ func(cfg *apiConfig) adminGetAllUsers(c *gin.Context){
 
 	c.IndentedJSON(http.StatusOK, users)
 }	
+
+
+// GET USER BY ID
+func(cfg *apiConfig) adminGetUserByID(c *gin.Context){
+	tempID := c.Param("id")
+
+	if tempID == ""{
+		utils.ErrorJSON(c, 400, "error", "error invalid user id", nil)
+		return
+	}
+
+	userID := uuid.MustParse(tempID)
+	user, err := cfg.DB.GetUserByID(c, userID)
+	if err != nil {
+		utils.ErrorJSON(c, 500, "error fetching user", "error retrieving user form db", err)
+		return
+	}
+
+	c.IndentedJSON(200, user)
+}
+
+// DELETE USER BY ID
+func(cfg *apiConfig) adminDeleteUserByID(c *gin.Context){
+	tempID := c.Param("id")
+
+	if tempID == ""{
+		utils.ErrorJSON(c, 400, "error", "error invalid user id", nil)
+		return
+	}
+
+	userID := uuid.MustParse(tempID)
+	err := cfg.DB.DeleteUserByID(c, userID)
+	if err != nil{
+		utils.ErrorJSON(c, 500, "unable to delete user", "error deleting user from db", err)
+		return 
+	}
+
+	c.IndentedJSON(204, utils.MessageObj("successfully deleted"))
+}
