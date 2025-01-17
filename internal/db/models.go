@@ -6,9 +6,18 @@ package db
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+type PasswordToken struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Token     string
+	CreatedAt sql.NullTime
+	ExpiresAt time.Time
+}
 
 type User struct {
 	ID           uuid.UUID

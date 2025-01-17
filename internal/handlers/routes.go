@@ -34,7 +34,6 @@ func RegisterRoutes(r *gin.Engine){
 	// Routes
 	r.POST("/v1/user", apiCfg.registerUser)
 	r.POST("/v1/login", apiCfg.loginUser)
-
 	//JWT AUTHENTICATED ROUTES
 	// Secret key
 	godotenv.Load()
@@ -51,6 +50,9 @@ func RegisterRoutes(r *gin.Engine){
 		protected.PUT("/user", apiCfg.updateUserDetails)
 		protected.DELETE("/user", apiCfg.deleteUser)
 	} 
+	// USER PASS RESET
+	r.POST("/v1/user/password-reset", apiCfg.resetPasswordRequest)
+	r.POST("/v1/user/password-reset/:token", apiCfg.resetPasswordConfirm)
 
 	//ADMIN PROTECTED ROUTES
 	r.POST("/admin/login", apiCfg.adminLogin)

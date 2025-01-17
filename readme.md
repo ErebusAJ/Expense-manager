@@ -95,3 +95,22 @@ One approach is we can use if conditions in our user handlers e.g if user.access
     - Add a new group **adminProtected** with path "/admin" add the middleware and then the routes we want to user here /users which calls adminGetAllUsers
 
 > A small optimization I did is everytime a methods err is not nill we need to return the error to client via c.IndentedJSON passing error code and obj and then a log for server which explains about the error breifly. So I creted a helper function in **internal/utils/err.go** which takes input ginContext, error code, client string, server string and error
+
+## ***6. Password reset***
+Now we need a handler to reset user password if they forget to help them recover theri account.
+
+* **schema/passwordReset.sql**:
+    - We need to create a table **password_tokens** so that we can store the token generated and use it for verification while the user updates his password. Add fields like, id, user_id(foreign key), token, craeted_at, expires_at
+
+* **queries/table_password.sql**:
+    - Write a few queries like insert, update, delete, select
+
+* **handlers/handleruser.go**:
+    - **resetPasswordRequest**: it verfies the email being received as a request is appropriate and does a user with the email exists or not. After verifyinfg we generate a token and it's expiry time i.e 1hr and insert it into **password_token** table. Then we call sendEmail function passing arguments email received in request and url/password reset link
+
+    - **resetPasswordConfirm**: here we get a newPassword in request and also a param **token** we verify token if it exists in DB. If it does and if it's valid not expired we hash the password and update users table with the new password. After updation is done we have no use of the token so we delete it
+
+* **utils/email.go** : 
+    - to send an email I have used gomail. First retrieve your email and app pass form env. Create a **NewMessage()** instance of gomail set values to headers like from, to, subject, and the body where link goes
+
+    - Create a **NewDialer()** of gomail set host argument as **"smtp.gmail.com"** for gmail and port 587 then your email and pass
