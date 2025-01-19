@@ -114,3 +114,46 @@ Now we need a handler to reset user password if they forget to help them recover
     - to send an email I have used gomail. First retrieve your email and app pass form env. Create a **NewMessage()** instance of gomail set values to headers like from, to, subject, and the body where link goes
 
     - Create a **NewDialer()** of gomail set host argument as **"smtp.gmail.com"** for gmail and port 587 then your email and pass
+
+
+## ***Users Endpoints***
+
+
+| Endpoint | HTTP Method | Purpose | Authentication | 
+| ----------- |----------- |----------- |----------- |
+| `/v1/register` | `POST` | Register a new user | No |
+| `/v1/login` | `POST` | Authenticates a user, returns JWT | No |
+| `/auth/user` | `GET` | Get logged in user details | Yes (JWT) |
+| `/auth/user` | `PUT` | Update user details | Yes (JWT) |
+| `/auth/user` | `DELETE` | Delete authenticated user | Yes (JWT) |
+| `/v1/user/password-reset` | `POST` | Sends a pass reset request to user email | No |
+| `/v1/user/password-reset` | `POST` | Update user's password | Reset Token |
+| `/admin/users` | `GET` | Get all users details | Yes (JWT) |
+| `/admin/user/:id` | `GET` | Get a user's details by ID | Yes (JWT) |
+| `/admin/user/:id` | `DELETE` | Delete a user by its ID | Yes (JWT) |
+
+
+## ***7. Expenses DB/Handlers**
+Now that users endpoints are done. We move on to next table expenses which stores expenses of a user.
+
+As done for users we creat table schema, queries and handlers 
+
+| Endpoint | HTTP Method | Purpose | Authentication | 
+| ----------- |----------- |----------- |----------- |
+| `/expenses` | `GET` | Gets a user's all expenses | Yes (JWT) |
+| `/expense/:id` | `GET` | Gets a user expense of specified ID | Yes (JWT) | 
+| `/expense/` | `POST` | Adds a user expense | Yes (JWT) | 
+| `/expense/:id` | `PUT` | Updates a user expense of specified ID | Yes (JWT) | 
+| `/expense/:id` | `GET` | Deletes a user expense of specified ID | Yes (JWT) | 
+
+
+
+
+
+
+
+
+
+
+
+

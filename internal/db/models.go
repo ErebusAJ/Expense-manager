@@ -11,6 +11,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type Expense struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	Amount      string
+	Title       string
+	Description sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type PasswordToken struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
