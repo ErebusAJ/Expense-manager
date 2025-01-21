@@ -116,7 +116,7 @@ Now we need a handler to reset user password if they forget to help them recover
     - Create a **NewDialer()** of gomail set host argument as **"smtp.gmail.com"** for gmail and port 587 then your email and pass
 
 
-## ***Users Endpoints***
+## ***7. Users Endpoints***
 
 
 | Endpoint | HTTP Method | Purpose | Authentication | 
@@ -133,7 +133,7 @@ Now we need a handler to reset user password if they forget to help them recover
 | `/admin/user/:id` | `DELETE` | Delete a user by its ID | Yes (JWT) |
 
 
-## ***7. Expenses DB/Handlers**
+## ***8. Expenses DB/Handlers***
 Now that users endpoints are done. We move on to next table expenses which stores expenses of a user.
 
 As done for users we creat table schema, queries and handlers 
@@ -145,6 +145,33 @@ As done for users we creat table schema, queries and handlers
 | `/expense/` | `POST` | Adds a user expense | Yes (JWT) | 
 | `/expense/:id` | `PUT` | Updates a user expense of specified ID | Yes (JWT) | 
 | `/expense/:id` | `GET` | Deletes a user expense of specified ID | Yes (JWT) | 
+
+
+## ***9. Groups DB/Handlers***
+To manage groups of users where they can split up bills and lend/borrow money from or to each other.
+In the database two tables **groups** and **group_members** handle the management of groups and its members.
+
+The API Endpoints for the same are:
+
+| Endpoint | HTTP Method | Purpose | Authentication | 
+| ----------- |----------- |----------- |----------- |
+| `/group` | `POST` | Creates an expend group the request sender becomes the creator | Yes (JWT) |
+| `/group/:group_id` | `GET` | Retrieves group details specified by groupID | Yes (JWT) |
+| `/group/:group_id` | `PUT` | Updates group's details specified by groupID | Yes (JWT) |
+| `/group/:group_id` | `DELETE` | Deletes a specified by groupID (can be requested only by creator of group) | Yes (JWT) |
+| `/group/` | `GET` | Retrieves groups created by a user | Yes (JWT) |
+| `/group/all` | `GET` | Retrieves all the groups a user is part off | Yes (JWT) |
+| `/group/:group_id/member/:user_id` | `POST` | Adds a member to a group specified by user_id and group_id respectively| Yes (JWT) |
+| `/group/:group_id/member` | `GET` | Retrieves a particular group's members | Yes (JWT) |
+| `/group/:group_id/member/:user_id` | `DELETE` | Deletes a user from a group | Yes (JWT) |
+
+
+
+
+
+
+
+
 
 
 

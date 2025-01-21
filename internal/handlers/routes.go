@@ -57,6 +57,20 @@ func RegisterRoutes(r *gin.Engine){
 		protected.PUT("/expense/:id", apiCfg.updateUserExpense)
 		protected.DELETE("/expense/:id", apiCfg.deleteExpense)
 
+		//GROUPS ROUTES
+		protected.GET("/group/:group_id", apiCfg.getGroupByID)
+		protected.POST("/group", apiCfg.userCreateGroup)
+		protected.PUT("/group/:group_id", apiCfg.updateGroupDetails)
+		protected.DELETE("/group/:group_id", apiCfg.deleteUserGroup)
+		
+		protected.POST("/group/:group_id/member/:user_id", apiCfg.addGroupMember)
+		protected.GET("/group/:group_id/member", apiCfg.getGroupMembers)
+		protected.DELETE("/group/:group_id/member/:user_id", apiCfg.deleteGroupMember)
+
+		protected.GET("/group/all", apiCfg.getUserAllGroups)
+		protected.GET("/group", apiCfg.getUserGroups)
+
+
 	} 
 	// USER PASS RESET
 	r.POST("/v1/user/password-reset", apiCfg.resetPasswordRequest)

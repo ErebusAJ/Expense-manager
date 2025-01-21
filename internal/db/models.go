@@ -21,6 +21,22 @@ type Expense struct {
 	UpdatedAt   sql.NullTime
 }
 
+type Group struct {
+	ID          uuid.UUID
+	Name        string
+	Description sql.NullString
+	CreatedBy   uuid.UUID
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type GroupMember struct {
+	ID      uuid.UUID
+	GroupID uuid.UUID
+	UserID  uuid.UUID
+	AddedAt sql.NullTime
+}
+
 type PasswordToken struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
