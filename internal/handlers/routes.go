@@ -70,6 +70,13 @@ func RegisterRoutes(r *gin.Engine){
 		protected.GET("/group/all", apiCfg.getUserAllGroups)
 		protected.GET("/group", apiCfg.getUserGroups)
 
+		//GROUPS EXPENSES ROUTES
+		protected.POST("/group/:group_id/expense", apiCfg.addGroupExpense)
+		protected.GET("/group/:group_id/expense", apiCfg.getAllGroupExpenses)
+		protected.PUT("/group/:group_id/expense/:expense_id", apiCfg.updateGroupExpense)
+		protected.DELETE("/group/:group_id/expense/:expense_id", apiCfg.deleteGroupExpense)
+		
+
 
 	} 
 	// USER PASS RESET

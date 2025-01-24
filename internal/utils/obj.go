@@ -17,6 +17,7 @@ const (
 	DatabaseError		= 	"error processing db query"
 	IDParseError		=	"error parsing id to uuid"
 	InvalidAcess		=	"error not appropriate access level"
+	AmountSplitError	=	"error wrong amount split"
 
 )
 

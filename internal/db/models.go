@@ -30,6 +30,26 @@ type Group struct {
 	UpdatedAt   sql.NullTime
 }
 
+type GroupExpense struct {
+	ID          uuid.UUID
+	Title       string
+	Description sql.NullString
+	Amount      string
+	GroupID     uuid.UUID
+	CreatedBy   uuid.UUID
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type GroupExpenseParticipant struct {
+	ID             uuid.UUID
+	GroupExpenseID uuid.UUID
+	UserID         uuid.UUID
+	Amount         string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
 type GroupMember struct {
 	ID      uuid.UUID
 	GroupID uuid.UUID
