@@ -32,7 +32,7 @@ func RegisterRoutes(r *gin.Engine){
 	}
 
 	// Routes
-	r.POST("/v1/user", apiCfg.registerUser)
+	r.POST("/v1/register", apiCfg.registerUser)
 	r.POST("/v1/login", apiCfg.loginUser)
 	//JWT AUTHENTICATED ROUTES
 	// Secret key
@@ -49,6 +49,35 @@ func RegisterRoutes(r *gin.Engine){
 		protected.GET("/user", apiCfg.getAuthUser)
 		protected.PUT("/user", apiCfg.updateUserDetails)
 		protected.DELETE("/user", apiCfg.deleteUser)
+
+		//EXPENSES ROUTES
+		protected.GET("/expenses", apiCfg.getUserExpenses)
+		protected.GET("/expense/:id", apiCfg.getUserExpenseByID)
+		protected.POST("/expense", apiCfg.addUserExpense)
+		protected.PUT("/expense/:id", apiCfg.updateUserExpense)
+		protected.DELETE("/expense/:id", apiCfg.deleteExpense)
+
+		//GROUPS ROUTES
+		protected.GET("/group/:group_id", apiCfg.getGroupByID)
+		protected.POST("/group", apiCfg.userCreateGroup)
+		protected.PUT("/group/:group_id", apiCfg.updateGroupDetails)
+		protected.DELETE("/group/:group_id", apiCfg.deleteUserGroup)
+		
+		protected.POST("/group/:group_id/member/:user_id", apiCfg.addGroupMember)
+		protected.GET("/group/:group_id/member", apiCfg.getGroupMembers)
+		protected.DELETE("/group/:group_id/member/:user_id", apiCfg.deleteGroupMember)
+
+		protected.GET("/group/all", apiCfg.getUserAllGroups)
+		protected.GET("/group", apiCfg.getUserGroups)
+
+		//GROUPS EXPENSES ROUTES
+		protected.POST("/group/:group_id/expense", apiCfg.addGroupExpense)
+		protected.GET("/group/:group_id/expense", apiCfg.getAllGroupExpenses)
+		protected.PUT("/group/:group_id/expense/:expense_id", apiCfg.updateGroupExpense)
+		protected.DELETE("/group/:group_id/expense/:expense_id", apiCfg.deleteGroupExpense)
+		
+
+
 	} 
 	// USER PASS RESET
 	r.POST("/v1/user/password-reset", apiCfg.resetPasswordRequest)
@@ -63,5 +92,4 @@ func RegisterRoutes(r *gin.Engine){
 		adminProtected.GET("/user/:id", apiCfg.adminGetUserByID)
 		adminProtected.DELETE("/user/:id", apiCfg.adminDeleteUserByID)
 	}
-	// r.GET("/auth/user",)
 }

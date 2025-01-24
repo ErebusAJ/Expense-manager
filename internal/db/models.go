@@ -11,6 +11,52 @@ import (
 	"github.com/google/uuid"
 )
 
+type Expense struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	Amount      string
+	Title       string
+	Description sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type Group struct {
+	ID          uuid.UUID
+	Name        string
+	Description sql.NullString
+	CreatedBy   uuid.UUID
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type GroupExpense struct {
+	ID          uuid.UUID
+	Title       string
+	Description sql.NullString
+	Amount      string
+	GroupID     uuid.UUID
+	CreatedBy   uuid.UUID
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type GroupExpenseParticipant struct {
+	ID             uuid.UUID
+	GroupExpenseID uuid.UUID
+	UserID         uuid.UUID
+	Amount         string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type GroupMember struct {
+	ID      uuid.UUID
+	GroupID uuid.UUID
+	UserID  uuid.UUID
+	AddedAt sql.NullTime
+}
+
 type PasswordToken struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID

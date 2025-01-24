@@ -114,3 +114,73 @@ Now we need a handler to reset user password if they forget to help them recover
     - to send an email I have used gomail. First retrieve your email and app pass form env. Create a **NewMessage()** instance of gomail set values to headers like from, to, subject, and the body where link goes
 
     - Create a **NewDialer()** of gomail set host argument as **"smtp.gmail.com"** for gmail and port 587 then your email and pass
+
+
+## ***7. Users Endpoints***
+
+
+| Endpoint | HTTP Method | Purpose | Authentication | 
+| ----------- |----------- |----------- |----------- |
+| `/v1/register` | `POST` | Register a new user | No |
+| `/v1/login` | `POST` | Authenticates a user, returns JWT | No |
+| `/auth/user` | `GET` | Get logged in user details | Yes (JWT) |
+| `/auth/user` | `PUT` | Update user details | Yes (JWT) |
+| `/auth/user` | `DELETE` | Delete authenticated user | Yes (JWT) |
+| `/v1/user/password-reset` | `POST` | Sends a pass reset request to user email | No |
+| `/v1/user/password-reset` | `POST` | Update user's password | Reset Token |
+| `/admin/users` | `GET` | Get all users details | Yes (JWT) |
+| `/admin/user/:id` | `GET` | Get a user's details by ID | Yes (JWT) |
+| `/admin/user/:id` | `DELETE` | Delete a user by its ID | Yes (JWT) |
+
+
+## ***8. Expenses DB/Handlers***
+Now that users endpoints are done. We move on to next table expenses which stores expenses of a user.
+
+As done for users we creat table schema, queries and handlers 
+
+| Endpoint | HTTP Method | Purpose | Authentication | 
+| ----------- |----------- |----------- |----------- |
+| `/expenses` | `GET` | Gets a user's all expenses | Yes (JWT) |
+| `/expense/:id` | `GET` | Gets a user expense of specified ID | Yes (JWT) | 
+| `/expense/` | `POST` | Adds a user expense | Yes (JWT) | 
+| `/expense/:id` | `PUT` | Updates a user expense of specified ID | Yes (JWT) | 
+| `/expense/:id` | `GET` | Deletes a user expense of specified ID | Yes (JWT) | 
+
+
+## ***9. Groups DB/Handlers***
+To manage groups of users where they can split up bills and lend/borrow money from or to each other.
+In the database two tables **groups** and **group_members** handle the management of groups and its members.
+
+The API Endpoints for the same are:
+
+| Endpoint | HTTP Method | Purpose | Authentication | 
+| ----------- |----------- |----------- |----------- |
+| `/group` | `POST` | Creates an expend group the request sender becomes the creator | Yes (JWT) |
+| `/group/:group_id` | `GET` | Retrieves group details specified by groupID | Yes (JWT) |
+| `/group/:group_id` | `PUT` | Updates group's details specified by groupID | Yes (JWT) |
+| `/group/:group_id` | `DELETE` | Deletes a specified by groupID (can be requested only by creator of group) | Yes (JWT) |
+| `/group/` | `GET` | Retrieves groups created by a user | Yes (JWT) |
+| `/group/all` | `GET` | Retrieves all the groups a user is part off | Yes (JWT) |
+| `/group/:group_id/member/:user_id` | `POST` | Adds a member to a group specified by user_id and group_id respectively| Yes (JWT) |
+| `/group/:group_id/member` | `GET` | Retrieves a particular group's members | Yes (JWT) |
+| `/group/:group_id/member/:user_id` | `DELETE` | Deletes a user from a group | Yes (JWT) |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
