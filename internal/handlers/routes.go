@@ -76,6 +76,10 @@ func RegisterRoutes(r *gin.Engine){
 		protected.PUT("/group/:group_id/expense/:expense_id", apiCfg.updateGroupExpense)
 		protected.DELETE("/group/:group_id/expense/:expense_id", apiCfg.deleteGroupExpense)
 		
+		//GROUP MEMBERS NET BALANCE
+		protected.GET("/group/:group_id/netbalance", apiCfg.fetchNetBalance)
+		protected.POST("/group/:group_id/minimizeTransaction", apiCfg.minimizeTransactions)
+		protected.GET("/group/:group_id/minimizeTransaction", apiCfg.fetchMinimizedTransactions)
 
 
 	} 

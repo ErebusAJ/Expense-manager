@@ -22,7 +22,8 @@ INSERT INTO group_members(user_id, group_id)
 VALUES($1, $2);
 
 -- name: GetGroupMembers :many
-SELECT * FROM group_members
+SELECT users.name, users.email FROM users
+INNER JOIN group_members ON users.id = group_members.user_id
 WHERE group_id=$1;
 
 -- name: DeleteGroupMember :exec

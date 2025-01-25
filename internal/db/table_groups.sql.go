@@ -120,25 +120,26 @@ func (q *Queries) GetGroupByID(ctx context.Context, id uuid.UUID) (Group, error)
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT id, group_id, user_id, added_at FROM group_members
+SELECT users.name, users.email FROM users
+INNER JOIN group_members ON users.id = group_members.user_id
 WHERE group_id=$1
 `
 
-func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]GroupMember, error) {
+type GetGroupMembersRow struct {
+	Name  string
+	Email string
+}
+
+func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]GetGroupMembersRow, error) {
 	rows, err := q.db.QueryContext(ctx, getGroupMembers, groupID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GroupMember
+	var items []GetGroupMembersRow
 	for rows.Next() {
-		var i GroupMember
-		if err := rows.Scan(
-			&i.ID,
-			&i.GroupID,
-			&i.UserID,
-			&i.AddedAt,
-		); err != nil {
+		var i GetGroupMembersRow
+		if err := rows.Scan(&i.Name, &i.Email); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

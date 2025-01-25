@@ -31,7 +31,7 @@ func(cfg *apiConfig) addGroupExpense(c *gin.Context){
 		return 
 	}
 
-	// Check of the split amount among members equals to 
+	// Check if the split amount among members equals to 
 	var sum float64
 	sum = 0
 	for _, item := range reqDetails.Participants{
@@ -85,6 +85,21 @@ func(cfg *apiConfig) addGroupExpense(c *gin.Context){
 			return
 		}
 	}
+
+	// add members debt or net balance owes/owed
+	for _, member := range reqDetails.Participants{
+		_, err := cfg.DB.UpdateUserDebts(c, db.UpdateUserDebtsParams{
+			FromUser: member.ID,
+			ToUser: userID,
+			GroupID: groupID,
+			Amount: member.Amount,
+			ExpenseID: expense.ID,
+		})
+		if err != nil{
+			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+			return
+		}
+	} 
 
 	c.IndentedJSON(200, utils.MessageObj("successfully added"))
 }
@@ -235,3 +250,72 @@ func(cfg *apiConfig) deleteGroupExpense(c *gin.Context){
 	c.IndentedJSON(204, utils.MessageObj("deleted"))
 
 }	
+
+
+// fetchNetBalance
+// retrieves the net balance of a person if he is in +ve or -ve
+func(cfg *apiConfig) fetchNetBalance(c *gin.Context){
+	tempGID := c.Param("group_id")
+	groupID := uuid.MustParse(tempGID)
+
+	netBalances, err := cfg.DB.FetchNetBalance(c, groupID)
+	if err != nil{
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return 
+	}
+	
+	c.IndentedJSON(200, netBalances)
+}
+
+
+// minimizeTransactions
+// return minimum transactions to make for settling up debts
+func(cfg *apiConfig) minimizeTransactions(c *gin.Context){
+	tempGID := c.Param("group_id")
+	groupID := uuid.MustParse(tempGID)
+
+	netBalances, err := cfg.DB.FetchNetBalance(c, groupID)
+	if err != nil{
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return
+	}
+
+	newBalances := make(map[uuid.UUID]string)
+
+	for _, item  := range netBalances{
+		newBalances[item.UserID] = item.Netbalance
+	}
+
+	transactions := utils.MinimizeDebts(newBalances)
+
+	for _, record := range transactions{
+		_, err := cfg.DB.AddSimplifiedTransaction(c, db.AddSimplifiedTransactionParams{
+			GroupID: groupID,
+			FromUser: record.FromUserID,
+			ToUser: record.ToUserID,
+			Amount: record.Amount,
+		})
+		if err != nil{
+			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+			return
+		}
+	}
+
+	c.IndentedJSON(201, utils.MessageObj("successfully minimized"))
+}
+
+
+// fetchMinimizedTransactions
+// Retrieve the minimized transactions from DB
+func(cfg *apiConfig) fetchMinimizedTransactions(c *gin.Context){
+	tempGID := c.Param("group_id")
+	groupID := uuid.MustParse(tempGID)
+
+	records, err := cfg.DB.GetSimplifiedTransactions(c, groupID)
+	if err != nil{
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return 
+	}
+
+	c.IndentedJSON(200, records)
+}

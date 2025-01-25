@@ -57,12 +57,31 @@ type GroupMember struct {
 	AddedAt sql.NullTime
 }
 
+type GroupMembersDebt struct {
+	ID        uuid.UUID
+	FromUser  uuid.UUID
+	ToUser    uuid.UUID
+	GroupID   uuid.UUID
+	ExpenseID uuid.UUID
+	Amount    string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type PasswordToken struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
 	Token     string
 	CreatedAt sql.NullTime
 	ExpiresAt time.Time
+}
+
+type SimplifiedTransaction struct {
+	ID       uuid.UUID
+	GroupID  uuid.UUID
+	FromUser uuid.UUID
+	ToUser   uuid.UUID
+	Amount   string
 }
 
 type User struct {

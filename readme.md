@@ -166,7 +166,30 @@ The API Endpoints for the same are:
 | `/group/:group_id/member/:user_id` | `DELETE` | Deletes a user from a group | Yes (JWT) |
 
 
+## ***10. Groups Expenses and Members***
+To manage the expenses of groups and people involved in it a **group_expense** and **group_expense_participants** table is created. It helps is better scalability and management of data in DB.
 
+Here are the endpoints asssociated with it
+| Endpoint | HTTP Method | Purpose | Authentication |
+| -------- | ----------- | ------- | -------------- |
+| `/group/:group_id/expense` | `POST` | Adds a expense to specified group | Yes (JWT) |
+| `/group/:group_id/expense` | `GET` | Get all group expenses | Yes (JWT) | 
+| `/group/:group_id/expense/:expense_id` | `PUT` | Updates a specified expense details | Yes (JWT) | 
+| `/group/:group_id/expense/:expense_id`| `DELETE`  | Deletes a specified group expense | Yes (JWT) | 
+
+
+
+## ***11. Group Members Debt***
+To manage the netbalance of each user -ve/+ve created a table schema **group_memberes_debt** to fetch the netbalance using **INNER JOIN query** and **simplified_transactions** to manage and store the minimised number of transactions to settle up balances
+
+> **Note** The net balances are fetched using query and minimised via a go custom util function
+
+Here are the associated endpoints
+| Endpoint | HTTP Method | Purpose | Authentication |
+| -------- | ----------- | ------- | -------------- |
+| `/group/:group_id/netbalance` | `GET` | Fetches the net balance of the members of a specified group | Yes(JWT) |
+| `/group/:group_id/minimizeTransaction` | `POST` | Adds the simplified transaction to DB of specified group | Yes(JWT) |
+| `/group/:group_id/minimizeTransaction` | `GET` | Fetches simplified transactions of a specific group| Yes(JWT) |
 
 
 
