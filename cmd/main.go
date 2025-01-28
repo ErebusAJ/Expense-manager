@@ -30,6 +30,6 @@ func main(){
 
 	log.Printf("\t\t Starting server... \n")
 
-	r.Run("localhost:"+port)
+	r.Run(":"+port)
 
 }
