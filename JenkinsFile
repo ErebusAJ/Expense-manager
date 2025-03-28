@@ -44,47 +44,57 @@ pipeline {
         }
     }
 
-    post{
-        success {
-            script {
-                emailext(
-                    to: 'dev.erebusaj@gmail.com',
-                    subject: "😼 [SUCCESS] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: """
-                        <p>✅ Build <b>#${env.BUILD_NUMBER}</b> succeeded!</p>
-                        <p>Check the build details: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                    """,
-                    attachLog: true
-                )
-            }
-        }
-
-        failure {
-            script {
-                emailext(
-                    to: 'dev.erebusaj@gmail.com',
-                    subject: "😼 [FAILED] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: """
-                        <p>❌ Build <b>#${env.BUILD_NUMBER}</b> failed!</p>
-                        <p>Check the logs for details: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                    """,
-                    attachLog: true
-                )
-            }
-        }
-
-        unstable {
-            script {
-                emailext(
-                    to: 'dev.erebusaj@gmail.com',
-                    subject: "😼 [UNSTABLE] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: """
-                        <p>⚠️ Build <b>#${env.BUILD_NUMBER}</b> is unstable!</p>
-                        <p>Check the logs for details: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                    """,
-                    attachLog: true
-                )
-            }
+    post {
+    success {
+        script {
+            emailext(
+                to: 'dev.erebusaj@gmail.com',
+                subject: "😼 [SUCCESS] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <div style="font-family: Arial, sans-serif; padding: 10px; border-radius: 5px; background-color: #e6f9e6; color: #2e7d32;">
+                        <h2 style="color: #41B06E;">✅ SUCCESS: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}</h2>
+                        <p>The build has completed successfully!</p>
+                        <p><b>Build Details:</b> <a href="${env.BUILD_URL}" style="color: #1b5e20;">Click here</a></p>
+                    </div>
+                """,
+                attachLog: true
+            )
         }
     }
+
+    failure {
+        script {
+            emailext(
+                to: 'dev.erebusaj@gmail.com',
+                subject: "😿 [FAILED] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <div style="font-family: Arial, sans-serif; padding: 10px; border-radius: 5px; background-color: #ffebee; color: #c62828;">
+                        <h2 style="color: #E50046;">❌ FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}</h2>
+                        <p>The build has failed. Please check the logs.</p>
+                        <p><b>Build Details:</b> <a href="${env.BUILD_URL}" style="color: #b71c1c;">Click here</a></p>
+                    </div>
+                """,
+                attachLog: true
+            )
+        }
+    }
+
+    unstable {
+        script {
+            emailext(
+                to: 'dev.erebusaj@gmail.com',
+                subject: "🐱 [UNSTABLE] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <div style="font-family: Arial, sans-serif; padding: 10px; border-radius: 5px; background-color: #fff8e1; color: #ff8f00;">
+                        <h2 style="color: #FFD95F;">⚠️ UNSTABLE: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}</h2>
+                        <p>The build is unstable. Some tests might have failed.</p>
+                        <p><b>Build Details:</b> <a href="${env.BUILD_URL}" style="color: #ff6f00;">Click here</a></p>
+                    </div>
+                """,
+                attachLog: true
+            )
+        }
+    }
+}
+
 }
