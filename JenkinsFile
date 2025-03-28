@@ -1,6 +1,6 @@
 @Library("git-shared") _
 
-pipline {
+pipeline {
     agent { label "bub"}
 
     stages{
