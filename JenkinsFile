@@ -43,4 +43,48 @@ pipeline {
             }
         }
     }
+
+    post{
+        success {
+            script {
+                emailext(
+                    to: 'dev.erebusaj@gmail.com',
+                    subject: "😼 [SUCCESS] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """
+                        <p>✅ Build <b>#${env.BUILD_NUMBER}</b> succeeded!</p>
+                        <p>Check the build details: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                    """,
+                    attachLog: true
+                )
+            }
+        }
+
+        failure {
+            script {
+                emailext(
+                    to: 'dev.erebusaj@gmail.com',
+                    subject: "😼 [FAILED] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """
+                        <p>❌ Build <b>#${env.BUILD_NUMBER}</b> failed!</p>
+                        <p>Check the logs for details: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                    """,
+                    attachLog: true
+                )
+            }
+        }
+
+        unstable {
+            script {
+                emailext(
+                    to: 'dev.erebusaj@gmail.com',
+                    subject: "😼 [UNSTABLE] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: """
+                        <p>⚠️ Build <b>#${env.BUILD_NUMBER}</b> is unstable!</p>
+                        <p>Check the logs for details: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                    """,
+                    attachLog: true
+                )
+            }
+        }
+    }
 }
