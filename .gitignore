@@ -1,0 +1,41 @@
+# Enviornment files
+/.env
+
+# Binary files
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+*.o
+
+# Build directories
+/bin
+/build
+
+# Vendor directory
+vendor/
+
+
+# Logs and debugging
+*.log
+
+# IDE/Editor-specific files
+.idea/
+.vscode/
+*.swp
+*~
+
+# Dependency management files
+go.sum
+
+# Coverage and testing
+coverage.out
+*.cover
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Credentials Files
+credentials.txt

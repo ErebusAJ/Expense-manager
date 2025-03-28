@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ErebusAJ/expense-manager/internal/db"
@@ -28,14 +29,17 @@ func hashPassword(password string) (string, error) {
 
 func (cfg *apiConfig) registerUser(c *gin.Context) {
 	type user struct {
-		Id       uuid.UUID `json:"id"`
-		Name     string    `json:"name"`
-		Email    string    `json:"email"`
-		Password string    `json:"password"`
+		Name     string    `json:"name" binding:"required"`
+		Email    string    `json:"email" binding:"required"`
+		Password string    `json:"password" binding:"required"`
 	}
 
 	var param user
-	c.BindJSON(&param)
+	err := c.BindJSON(&param)
+	if err != nil {
+		utils.ErrorJSON(c, 400, utils.RequestBodyError, utils.RequestBodyError, err)
+		return
+	}
 
 	//Hashing Password
 	hashPass, err := hashPassword(param.Password)
@@ -50,8 +54,11 @@ func (cfg *apiConfig) registerUser(c *gin.Context) {
 		Email:        param.Email,
 		PasswordHash: hashPass,
 	})
-	if err != nil {
-		utils.ErrorJSON(c, http.StatusNotAcceptable, "error creating user", "unable to create user", err)
+	if strings.Contains(err.Error(), "duplicate key value") {
+		utils.ErrorJSON(c, http.StatusNotAcceptable, "email already in use", "unable to create user", err)
+		return
+	}else if err != nil {
+		utils.ErrorJSON(c, http.StatusNotAcceptable, "unable to create user", "unable to create user", err)
 		return
 	}
 
