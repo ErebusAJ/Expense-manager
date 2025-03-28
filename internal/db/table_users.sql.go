@@ -7,13 +7,14 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :exec
-INSERT INTO users(id, name, email, password_hash)
-VALUES($1, $2, $3, $4)
+INSERT INTO users(id, name, email, password_hash, image_url)
+VALUES($1, $2, $3, $4, $5)
 `
 
 type CreateUserParams struct {
@@ -21,6 +22,7 @@ type CreateUserParams struct {
 	Name         string
 	Email        string
 	PasswordHash string
+	ImageUrl     sql.NullString
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
@@ -29,6 +31,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 		arg.Name,
 		arg.Email,
 		arg.PasswordHash,
+		arg.ImageUrl,
 	)
 	return err
 }
@@ -44,7 +47,7 @@ func (q *Queries) DeleteUserByID(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, email, password_hash, created_at, token_version, last_logged_in, access_level FROM users
+SELECT id, name, email, password_hash, created_at, token_version, last_logged_in, access_level, image_url FROM users
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -65,6 +68,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.TokenVersion,
 			&i.LastLoggedIn,
 			&i.AccessLevel,
+			&i.ImageUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -98,7 +102,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, password_hash, created_at, token_version, last_logged_in, access_level FROM users
+SELECT id, name, email, password_hash, created_at, token_version, last_logged_in, access_level, image_url FROM users
 WHERE id = $1
 `
 
@@ -114,6 +118,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.TokenVersion,
 		&i.LastLoggedIn,
 		&i.AccessLevel,
+		&i.ImageUrl,
 	)
 	return i, err
 }

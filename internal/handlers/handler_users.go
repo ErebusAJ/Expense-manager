@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"math/rand"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strings"
@@ -29,10 +31,12 @@ func hashPassword(password string) (string, error) {
 
 func (cfg *apiConfig) registerUser(c *gin.Context) {
 	type user struct {
-		Name     string    `json:"name" binding:"required"`
-		Email    string    `json:"email" binding:"required"`
-		Password string    `json:"password" binding:"required"`
+		Name     	string    `json:"name" binding:"required"`
+		Email   	string    `json:"email" binding:"required"`
+		Password	string    `json:"password" binding:"required"`
+		ImageUrl 	string	  `json:"image_url"`	
 	}
+	
 
 	var param user
 	err := c.BindJSON(&param)
@@ -48,18 +52,42 @@ func (cfg *apiConfig) registerUser(c *gin.Context) {
 		return
 	}
 
+	// initializing sql null string 
+	// assigning random image url 
+	var imageURL sql.NullString
+	if param.ImageUrl == ""{
+		defaultImage := []string{
+			"https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.artnews.com%2Fart-news%2Fmarket%2Fx-formerly-twitter-pulls-support-for-nft-profile-pictures-1234692647%2F&psig=AOvVaw1CFi_80f9QwjNW95367Xwr&ust=1743233057273000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCKDWjK2frIwDFQAAAAAdAAAAABAE",
+    		"https://pintu-academy.pintukripto.com/wp-content/uploads/2023/09/image-43-1024x640.png",
+    		"https://www.google.com/url?sa=i&url=https%3A%2F%2Fkantipurdental.edu.np%2Fwoocommercl%2FIt-A-Good-Investment-Forbes-Advisor-INDIA-8044313.html&psig=AOvVaw1CFi_80f9QwjNW95367Xwr&ust=1743233057273000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCKDWjK2frIwDFQAAAAAdAAAAABAw",
+    		"https://i.pinimg.com/736x/1f/34/da/1f34da676bcaa3b81a3ed27303fce78f.jpg",
+		}
+
+		randInd := rand.Intn(len(defaultImage))
+		
+		imageURL = sql.NullString{
+			String: defaultImage[randInd],
+			Valid: defaultImage[randInd] != "",
+		}
+
+	}
+
 	err = cfg.DB.CreateUser(c, db.CreateUserParams{
 		ID:           uuid.New(),
 		Name:         param.Name,
 		Email:        param.Email,
 		PasswordHash: hashPass,
+		ImageUrl:	imageURL,
+
 	})
-	if strings.Contains(err.Error(), "duplicate key value") {
-		utils.ErrorJSON(c, http.StatusNotAcceptable, "email already in use", "unable to create user", err)
-		return
-	}else if err != nil {
-		utils.ErrorJSON(c, http.StatusNotAcceptable, "unable to create user", "unable to create user", err)
-		return
+	if err != nil{
+		if strings.Contains(err.Error(), "duplicate key value") {
+			utils.ErrorJSON(c, http.StatusNotAcceptable, "email already in use", "unable to create user", err)
+			return
+		}else{
+			utils.ErrorJSON(c, http.StatusNotAcceptable, "unable to create user", "unable to create user", err)
+			return
+		}
 	}
 
 	c.IndentedJSON(http.StatusCreated, utils.MessageObj("created user successfully"))

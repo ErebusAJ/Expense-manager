@@ -93,4 +93,5 @@ type User struct {
 	TokenVersion sql.NullInt32
 	LastLoggedIn sql.NullTime
 	AccessLevel  string
+	ImageUrl     sql.NullString
 }
