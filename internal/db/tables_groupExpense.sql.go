@@ -87,6 +87,7 @@ func (q *Queries) DeleteGroupExpense(ctx context.Context, id uuid.UUID) error {
 const getAllGroupExpenses = `-- name: GetAllGroupExpenses :many
 SELECT id, title, description, amount, group_id, created_by, created_at, updated_at FROM group_expense
 WHERE group_id=$1
+ORDER BY created_at DESC
 `
 
 func (q *Queries) GetAllGroupExpenses(ctx context.Context, groupID uuid.UUID) ([]GroupExpense, error) {

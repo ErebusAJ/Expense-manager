@@ -331,3 +331,39 @@ func(cfg *apiConfig) getUserGroups(c *gin.Context){
 
 	c.IndentedJSON(200, groups)
 }
+
+
+// deleteLoggedInUser
+// deletes the user sending request itself.
+// For group leave option
+func(cfg *apiConfig) deleteLoggedInUser(c *gin.Context){
+	tempID, exists := c.Get("userID")
+	if !exists {
+		utils.ErrorJSON(c, 401, utils.UnauthorizedError, utils.MiddlewareError, nil)
+		return
+	}
+	userID := tempID.(uuid.UUID)
+
+	tempGID := c.Param("group_id")
+	if tempGID == ""{
+		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, nil)
+		return
+	}
+	groupID, err := uuid.Parse(tempGID)
+	if err != nil {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.IDParseError, err)
+		return 
+	}
+
+	err = cfg.DB.DeleteGroupMember(c, db.DeleteGroupMemberParams{
+		UserID: userID,
+		GroupID: groupID,
+	})
+	if err != nil {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return
+	}
+
+	c.IndentedJSON(204, utils.MessageObj("user deleted success"))
+
+}

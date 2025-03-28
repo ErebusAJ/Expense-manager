@@ -9,7 +9,8 @@ WHERE id=$1;
 
 -- name: GetAllGroupExpenses :many
 SELECT * FROM group_expense
-WHERE group_id=$1;
+WHERE group_id=$1
+ORDER BY created_at DESC;
 
 -- name: UpdateGroupExpense :exec
 UPDATE group_expense

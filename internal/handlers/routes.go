@@ -67,6 +67,7 @@ func RegisterRoutes(r *gin.Engine){
 		protected.POST("/group/:group_id/member/:user_id", apiCfg.addGroupMember)
 		protected.GET("/group/:group_id/member", apiCfg.getGroupMembers)
 		protected.DELETE("/group/:group_id/member/:user_id", apiCfg.deleteGroupMember)
+		protected.DELETE("/group/:group_id/member", apiCfg.deleteLoggedInUser)
 
 		protected.GET("/group/all", apiCfg.getUserAllGroups)
 		protected.GET("/group", apiCfg.getUserGroups)
