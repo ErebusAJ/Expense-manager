@@ -1,0 +1,46 @@
+@Library("git-shared") _
+
+pipline {
+    agent { label "bub"}
+
+    stages{
+        stage("Code"){
+            steps{
+                script{
+                    clone("https://github.com/ErebusAJ/Expense-manager.git", "master")
+                }
+            }
+        }
+
+        stage("Build"){
+            steps{
+                scritp{
+                    dockerBuild("aaryaj", "expense-manager", "latest")
+                }
+            }
+        }
+
+        stage("Test"){
+            steps{
+                echo "Starting build test"
+                echo "Test success"
+            }
+        }
+
+        stage("Push"){
+            steps{
+                script{
+                    dockerPush("dockerCreds", "expense-manager", "latest")
+                }
+            }
+        }
+
+        stage("Deploy"){
+            steps{
+                script{
+                    dockerDeploy()
+                }
+            }
+        }
+    }
+}
