@@ -14,7 +14,7 @@ pipeline {
 
         stage("Build"){
             steps{
-                scritp{
+                script{
                     dockerBuild("aaryaj", "expense-manager", "latest")
                 }
             }
