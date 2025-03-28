@@ -21,6 +21,10 @@ RETURNING *;
 DELETE FROM expenses
 WHERE id=$1;
 
+-- name: TotalExpense :one
+SELECT sum(amount)::FLOAT AS total_expense FROM expenses
+WHERE user_id=$1;   
+
 
 
 

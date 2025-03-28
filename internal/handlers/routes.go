@@ -56,6 +56,7 @@ func RegisterRoutes(r *gin.Engine){
 		protected.POST("/expense", apiCfg.addUserExpense)
 		protected.PUT("/expense/:id", apiCfg.updateUserExpense)
 		protected.DELETE("/expense/:id", apiCfg.deleteExpense)
+		protected.GET("/expenset/total", apiCfg.getTotalExpense)
 
 		//GROUPS ROUTES
 		protected.GET("/group/:group_id", apiCfg.getGroupByID)

@@ -174,3 +174,24 @@ func(cfg *apiConfig) deleteExpense(c *gin.Context){
 
 	c.IndentedJSON(204, utils.MessageObj("deletion successful"))
 }
+
+
+// getTotalExpense
+// retrieves a user's total expense
+func(cfg* apiConfig) getTotalExpense(c *gin.Context){
+	tempID, exists := c.Get("userID")
+	if !exists {
+		utils.ErrorJSON(c, 401, utils.UnauthorizedError, utils.MiddlewareError, nil)
+		return
+	}
+	userID := tempID.(uuid.UUID)
+
+
+	data, err := cfg.DB.TotalExpense(c, userID)
+	if err != nil {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return
+	}
+
+	c.IndentedJSON(200, gin.H{"total-expense": data})
+}
