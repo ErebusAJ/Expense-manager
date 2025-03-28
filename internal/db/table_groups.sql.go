@@ -120,14 +120,16 @@ func (q *Queries) GetGroupByID(ctx context.Context, id uuid.UUID) (Group, error)
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT users.name, users.email FROM users
+SELECT users.id, users.name, users.email, group_members.added_at FROM users
 INNER JOIN group_members ON users.id = group_members.user_id
 WHERE group_id=$1
 `
 
 type GetGroupMembersRow struct {
-	Name  string
-	Email string
+	ID      uuid.UUID
+	Name    string
+	Email   string
+	AddedAt sql.NullTime
 }
 
 func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]GetGroupMembersRow, error) {
@@ -139,7 +141,12 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]Get
 	var items []GetGroupMembersRow
 	for rows.Next() {
 		var i GetGroupMembersRow
-		if err := rows.Scan(&i.Name, &i.Email); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Email,
+			&i.AddedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
