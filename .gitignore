@@ -1,5 +1,5 @@
 # Enviornment files
-# /.env
+/.env
 
 # Binary files
 *.exe
@@ -26,8 +26,6 @@ vendor/
 *.swp
 *~
 
-# Dependency management files
-go.sum
 
 # Coverage and testing
 coverage.out
