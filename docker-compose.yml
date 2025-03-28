@@ -1,0 +1,6 @@
+
+services:
+  backend:
+    image: "aaryaj/expense-manager:latest"
+    ports:
+      - "8080:8080"
