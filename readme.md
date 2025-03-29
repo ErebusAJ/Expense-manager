@@ -145,6 +145,8 @@ As done for users we creat table schema, queries and handlers
 | `/expense/` | `POST` | Adds a user expense | Yes (JWT) | 
 | `/expense/:id` | `PUT` | Updates a user expense of specified ID | Yes (JWT) | 
 | `/expense/:id` | `GET` | Deletes a user expense of specified ID | Yes (JWT) | 
+| `/expense/total` | `GET` | Retrieves a user's total expense | Yes (JWT) | 
+
 
 
 ## ***9. Groups DB/Handlers***
@@ -158,12 +160,13 @@ The API Endpoints for the same are:
 | `/group` | `POST` | Creates an expend group the request sender becomes the creator | Yes (JWT) |
 | `/group/:group_id` | `GET` | Retrieves group details specified by groupID | Yes (JWT) |
 | `/group/:group_id` | `PUT` | Updates group's details specified by groupID | Yes (JWT) |
-| `/group/:group_id` | `DELETE` | Deletes a specified by groupID (can be requested only by creator of group) | Yes (JWT) |
+| `/group/:group_id` | `DELETE` | Deletes a group specified by groupID (can be requested only by creator of group) | Yes (JWT) |
 | `/group/` | `GET` | Retrieves groups created by a user | Yes (JWT) |
 | `/group/all` | `GET` | Retrieves all the groups a user is part off | Yes (JWT) |
 | `/group/:group_id/member/:user_id` | `POST` | Adds a member to a group specified by user_id and group_id respectively| Yes (JWT) |
 | `/group/:group_id/member` | `GET` | Retrieves a particular group's members | Yes (JWT) |
 | `/group/:group_id/member/:user_id` | `DELETE` | Deletes a user from a group | Yes (JWT) |
+| `/group/:group_id/member/` | `DELETE` | User leave group | Yes (JWT) |
 
 
 ## ***10. Groups Expenses and Members***

@@ -36,6 +36,16 @@ SET amount=$1, updated_at=CURRENT_TIMESTAMP
 WHERE id=$2;
 
 
+-- name: GetTotalGroupExpense :one
+SELECT SUM(amount)::FLOAT AS total_expense FROM group_expense
+WHERE group_id=$1;
 
 
+-- name: GetMembersTotalExpense :many
+SELECT u.name, u.id, SUM(group_expense_participants.amount)::FLOAT AS total_expense FROM group_expense_participants
+INNER JOIN users u ON u.id = group_expense_participants.user_id
+INNER JOIN group_expense ON group_expense.id = group_expense_participants.group_expense_id
+WHERE group_id=$1
+GROUP BY u.name, u.id
+ORDER BY total_expense DESC;
 

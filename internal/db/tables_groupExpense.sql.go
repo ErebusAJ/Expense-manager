@@ -178,6 +178,56 @@ func (q *Queries) GetGroupExpenseMembersByID(ctx context.Context, groupExpenseID
 	return items, nil
 }
 
+const getMembersTotalExpense = `-- name: GetMembersTotalExpense :many
+SELECT u.name, u.id, SUM(group_expense_participants.amount)::FLOAT AS total_expense FROM group_expense_participants
+INNER JOIN users u ON u.id = group_expense_participants.user_id
+INNER JOIN group_expense ON group_expense.id = group_expense_participants.group_expense_id
+WHERE group_id=$1
+GROUP BY u.name, u.id
+ORDER BY total_expense DESC
+`
+
+type GetMembersTotalExpenseRow struct {
+	Name         string
+	ID           uuid.UUID
+	TotalExpense float64
+}
+
+func (q *Queries) GetMembersTotalExpense(ctx context.Context, groupID uuid.UUID) ([]GetMembersTotalExpenseRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMembersTotalExpense, groupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMembersTotalExpenseRow
+	for rows.Next() {
+		var i GetMembersTotalExpenseRow
+		if err := rows.Scan(&i.Name, &i.ID, &i.TotalExpense); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTotalGroupExpense = `-- name: GetTotalGroupExpense :one
+SELECT SUM(amount)::FLOAT AS total_expense FROM group_expense
+WHERE group_id=$1
+`
+
+func (q *Queries) GetTotalGroupExpense(ctx context.Context, groupID uuid.UUID) (float64, error) {
+	row := q.db.QueryRowContext(ctx, getTotalGroupExpense, groupID)
+	var total_expense float64
+	err := row.Scan(&total_expense)
+	return total_expense, err
+}
+
 const updateGroupExpense = `-- name: UpdateGroupExpense :exec
 UPDATE group_expense
 SET title=$1, description=$2, amount=$3, updated_at=CURRENT_TIMESTAMP

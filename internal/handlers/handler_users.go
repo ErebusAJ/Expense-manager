@@ -57,10 +57,10 @@ func (cfg *apiConfig) registerUser(c *gin.Context) {
 	var imageURL sql.NullString
 	if param.ImageUrl == ""{
 		defaultImage := []string{
-			"https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.artnews.com%2Fart-news%2Fmarket%2Fx-formerly-twitter-pulls-support-for-nft-profile-pictures-1234692647%2F&psig=AOvVaw1CFi_80f9QwjNW95367Xwr&ust=1743233057273000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCKDWjK2frIwDFQAAAAAdAAAAABAE",
     		"https://pintu-academy.pintukripto.com/wp-content/uploads/2023/09/image-43-1024x640.png",
-    		"https://www.google.com/url?sa=i&url=https%3A%2F%2Fkantipurdental.edu.np%2Fwoocommercl%2FIt-A-Good-Investment-Forbes-Advisor-INDIA-8044313.html&psig=AOvVaw1CFi_80f9QwjNW95367Xwr&ust=1743233057273000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCKDWjK2frIwDFQAAAAAdAAAAABAw",
     		"https://i.pinimg.com/736x/1f/34/da/1f34da676bcaa3b81a3ed27303fce78f.jpg",
+			"https://i.pinimg.com/236x/5f/46/86/5f4686be55c9916e18cd0201606379c9.jpg",
+			"https://i.pinimg.com/474x/39/2e/0f/392e0f462c42eff5c04a836ef86fa3ca.jpg",
 		}
 
 		randInd := rand.Intn(len(defaultImage))

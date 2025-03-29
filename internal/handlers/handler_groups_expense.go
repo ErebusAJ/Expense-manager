@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 
 	"github.com/ErebusAJ/expense-manager/internal/db"
 	"github.com/ErebusAJ/expense-manager/internal/utils"
@@ -318,4 +319,66 @@ func(cfg *apiConfig) fetchMinimizedTransactions(c *gin.Context){
 	}
 
 	c.IndentedJSON(200, records)
+}
+
+// getGroupTotalExpense
+// retrieves a groups total expense
+func(cfg *apiConfig) getGroupTotalExpense(c *gin.Context){
+	tempGID := c.Param("group_id")
+	groupID, err := uuid.Parse(tempGID)
+	if err != nil{
+		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
+		return
+	}
+
+	data, err := cfg.DB.GetTotalGroupExpense(c, groupID)
+	if err != nil{
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return
+	}
+
+	c.IndentedJSON(200, gin.H{"total_expense":data})
+}
+
+
+// getGroupMembersTotal
+// retrieves each members total contribution for the expense group specified
+func(cfg *apiConfig) getGroupMembersTotal(c *gin.Context){
+	tempUID, exists := c.Get("userID")
+	if !exists {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.MiddlewareError, nil)
+		return 
+	}
+	userID := tempUID.(uuid.UUID)
+
+
+	tempGID := c.Param("group_id")
+	groupID, err := uuid.Parse(tempGID)
+	if err != nil{
+		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
+		return
+	}
+
+	_, err =cfg.DB.CheckMemeber(c, db.CheckMemeberParams{
+		GroupID: groupID,
+		UserID: userID,
+	})
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows"){
+			utils.ErrorJSON(c, 401, utils.UnauthorizedError, utils.InvalidAcess, err)
+			return
+		}else{
+			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+			return 
+		}
+	}
+	
+
+	data, err := cfg.DB.GetMembersTotalExpense(c, groupID)
+	if err != nil{
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return 
+	}
+
+	c.IndentedJSON(200, data)
 }
