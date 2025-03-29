@@ -8,8 +8,7 @@ import (
 	"github.com/ErebusAJ/expense-manager/internal/middleware"
 	"github.com/ErebusAJ/expense-manager/internal/utils"
 	"github.com/joho/godotenv"
-
-	// "github.com/ErebusAJ/expense-manager/internal/middleware"
+	
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
