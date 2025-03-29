@@ -50,7 +50,7 @@ pipeline {
             emailext(
                 to: 'dev.erebusaj@gmail.com',
                 subject: "😼 [SUCCESS] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                from: "Jenkins Expense-Manager <dev.erebusaj@gmail.com>"
+                from: "Jenkins Expense-Manager <dev.erebusaj@gmail.com>",
                 body: """
                     <div style="font-family: Arial, sans-serif; padding: 10px; border-radius: 5px; background-color: #e6f9e6; color: #2e7d32;">
                         <h2 style="color: #41B06E;">✅ SUCCESS: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}</h2>
@@ -68,7 +68,7 @@ pipeline {
             emailext(
                 to: 'dev.erebusaj@gmail.com',
                 subject: "😿 [FAILED] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                from: "Jenkins Expense-Manager <dev.erebusaj@gmail.com>"
+                from: "Jenkins Expense-Manager <dev.erebusaj@gmail.com>",
                 body: """
                     <div style="font-family: Arial, sans-serif; padding: 10px; border-radius: 5px; background-color: #ffebee; color: #c62828;">
                         <h2 style="color: #E50046;">❌ FAILED: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}</h2>
@@ -86,7 +86,7 @@ pipeline {
             emailext(
                 to: 'dev.erebusaj@gmail.com',
                 subject: "🐱 [UNSTABLE] Jenkins Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                from: "Jenkins Expense-Manager <dev.erebusaj@gmail.com>"
+                from: "Jenkins Expense-Manager <dev.erebusaj@gmail.com>",
                 body: """
                     <div style="font-family: Arial, sans-serif; padding: 10px; border-radius: 5px; background-color: #fff8e1; color: #ff8f00;">
                         <h2 style="color: #FFD95F;">⚠️ UNSTABLE: ${env.JOB_NAME} - Build #${env.BUILD_NUMBER}</h2>
