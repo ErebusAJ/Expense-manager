@@ -52,7 +52,7 @@ func (q *Queries) CheckMemeber(ctx context.Context, arg CheckMemeberParams) (Gro
 const createGroup = `-- name: CreateGroup :one
 INSERT INTO groups(name, description, created_by)
 VALUES($1, $2, $3)
-RETURNING id, name, description, created_by, created_at, updated_at
+RETURNING id, name, description, created_by, created_at, updated_at, image_url
 `
 
 type CreateGroupParams struct {
@@ -71,6 +71,7 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) (Group
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ImageUrl,
 	)
 	return i, err
 }
@@ -101,7 +102,7 @@ func (q *Queries) DeleteGroupMember(ctx context.Context, arg DeleteGroupMemberPa
 }
 
 const getGroupByID = `-- name: GetGroupByID :one
-SELECT id, name, description, created_by, created_at, updated_at FROM groups
+SELECT id, name, description, created_by, created_at, updated_at, image_url FROM groups
 WHERE id=$1
 `
 
@@ -115,21 +116,30 @@ func (q *Queries) GetGroupByID(ctx context.Context, id uuid.UUID) (Group, error)
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ImageUrl,
 	)
 	return i, err
 }
 
 const getGroupMembers = `-- name: GetGroupMembers :many
-SELECT users.id, users.name, users.email, group_members.added_at FROM users
+SELECT users.id, users.name, users.email, users.image_url, group_members.added_at,
+CASE 
+    WHEN g.created_by = users.id THEN TRUE
+    ELSE FALSE
+END AS is_admin
+FROM users
 INNER JOIN group_members ON users.id = group_members.user_id
+INNER JOIN groups g ON group_members.group_id = g.id
 WHERE group_id=$1
 `
 
 type GetGroupMembersRow struct {
-	ID      uuid.UUID
-	Name    string
-	Email   string
-	AddedAt sql.NullTime
+	ID       uuid.UUID
+	Name     string
+	Email    string
+	ImageUrl sql.NullString
+	AddedAt  sql.NullTime
+	IsAdmin  bool
 }
 
 func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]GetGroupMembersRow, error) {
@@ -145,7 +155,9 @@ func (q *Queries) GetGroupMembers(ctx context.Context, groupID uuid.UUID) ([]Get
 			&i.ID,
 			&i.Name,
 			&i.Email,
+			&i.ImageUrl,
 			&i.AddedAt,
+			&i.IsAdmin,
 		); err != nil {
 			return nil, err
 		}
@@ -202,7 +214,7 @@ func (q *Queries) GetUserAllGroups(ctx context.Context, userID uuid.UUID) ([]Get
 }
 
 const getUserGroups = `-- name: GetUserGroups :many
-SELECT id, name, description, created_by, created_at, updated_at FROM groups
+SELECT id, name, description, created_by, created_at, updated_at, image_url FROM groups
 WHERE created_by=$1
 `
 
@@ -222,6 +234,7 @@ func (q *Queries) GetUserGroups(ctx context.Context, createdBy uuid.UUID) ([]Gro
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ImageUrl,
 		); err != nil {
 			return nil, err
 		}

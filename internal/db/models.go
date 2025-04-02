@@ -28,6 +28,7 @@ type Group struct {
 	CreatedBy   uuid.UUID
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	ImageUrl    sql.NullString
 }
 
 type GroupExpense struct {
