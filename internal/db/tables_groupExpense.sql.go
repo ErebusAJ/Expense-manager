@@ -143,6 +143,42 @@ func (q *Queries) GetGroupExpenseByID(ctx context.Context, id uuid.UUID) (GroupE
 	return i, err
 }
 
+const getGroupExpenseDetails = `-- name: GetGroupExpenseDetails :many
+SELECT u.name, u.id, p.amount FROM group_expense
+INNER JOIN group_expense_participants p ON group_expense.id = p.group_expense_id
+INNER JOIN users u ON p.user_id = u.id
+WHERE group_expense.id=$1
+`
+
+type GetGroupExpenseDetailsRow struct {
+	Name   string
+	ID     uuid.UUID
+	Amount string
+}
+
+func (q *Queries) GetGroupExpenseDetails(ctx context.Context, id uuid.UUID) ([]GetGroupExpenseDetailsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupExpenseDetails, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetGroupExpenseDetailsRow
+	for rows.Next() {
+		var i GetGroupExpenseDetailsRow
+		if err := rows.Scan(&i.Name, &i.ID, &i.Amount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getGroupExpenseMembersByID = `-- name: GetGroupExpenseMembersByID :many
 SELECT id, group_expense_id, user_id, amount, created_at, updated_at FROM group_expense_participants
 WHERE group_expense_id=$1

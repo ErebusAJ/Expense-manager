@@ -382,3 +382,27 @@ func(cfg *apiConfig) getGroupMembersTotal(c *gin.Context){
 
 	c.IndentedJSON(200, data)
 }
+
+// getGroupExpenseDetails
+// fetchs details(participants, shares) of a groupExpense specified via ID
+func(cfg *apiConfig) getGroupExpenseDetails(c *gin.Context){
+	// tempGID := c.Param("group_id")
+	// groupID, err1 := uuid.Parse(tempGID)
+
+	tempEID := c.Param("expense_id")
+	expenseID, err := uuid.Parse(tempEID)
+
+	if err != nil {
+		utils.ErrorJSON(c, 400, utils.InvalidError, utils.IDParseError, err)
+		return 
+	}
+
+	data, err := cfg.DB.GetGroupExpenseDetails(c, expenseID)
+	if err != nil {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return 
+	}
+
+	c.IndentedJSON(200, data);
+
+}

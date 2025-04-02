@@ -49,3 +49,9 @@ WHERE group_id=$1
 GROUP BY u.name, u.id
 ORDER BY total_expense DESC;
 
+-- name: GetGroupExpenseDetails :many
+SELECT u.name, u.id, p.amount FROM group_expense
+INNER JOIN group_expense_participants p ON group_expense.id = p.group_expense_id
+INNER JOIN users u ON p.user_id = u.id
+WHERE group_expense.id=$1; 
+

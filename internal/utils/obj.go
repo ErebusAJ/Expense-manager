@@ -15,7 +15,7 @@ const (
 	RequestBodyError	=	"error binding request json"
 	MiddlewareError		=	"error retreiving user id from middleware"
 	DatabaseError		= 	"error processing db query"
-	IDParseError		=	"error parsing id to uuid"
+	IDParseError		=	"error parsing to uuid"
 	InvalidAcess		=	"error not appropriate access level"
 	AmountSplitError	=	"error wrong amount split"
 
