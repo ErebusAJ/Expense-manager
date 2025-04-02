@@ -86,6 +86,8 @@ func RegisterRoutes(r *gin.Engine){
 		protected.GET("/group/:group_id/netbalance", apiCfg.fetchNetBalance)
 		protected.POST("/group/:group_id/minimizeTransaction", apiCfg.minimizeTransactions)
 		protected.GET("/group/:group_id/minimizeTransaction", apiCfg.fetchMinimizedTransactions)
+		protected.GET("/group/:group_id/user-transaction", apiCfg.getUserSimplifiedTransction)
+		protected.POST("/group/:group_id/user-transaction/:transaction_id", apiCfg.settleTransaction)
 
 
 	} 

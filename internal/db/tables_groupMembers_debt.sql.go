@@ -44,6 +44,16 @@ func (q *Queries) AddSimplifiedTransaction(ctx context.Context, arg AddSimplifie
 	return i, err
 }
 
+const deleteTransaction = `-- name: DeleteTransaction :exec
+DELETE FROM simplified_transactions 
+WHERE id=$1
+`
+
+func (q *Queries) DeleteTransaction(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteTransaction, id)
+	return err
+}
+
 const fetchNetBalance = `-- name: FetchNetBalance :many
 WITH group_members_debt AS(
     SELECT
@@ -104,6 +114,7 @@ func (q *Queries) FetchNetBalance(ctx context.Context, groupID uuid.UUID) ([]Fet
 
 const getSimplifiedTransactions = `-- name: GetSimplifiedTransactions :many
 SELECT
+    st.id AS transaction_id,
     st.from_user AS from_user_id,
     u_from.name AS from_user_name,
     st.to_user AS to_user_id,
@@ -116,11 +127,12 @@ WHERE group_id=$1
 `
 
 type GetSimplifiedTransactionsRow struct {
-	FromUserID   uuid.UUID
-	FromUserName string
-	ToUserID     uuid.UUID
-	ToUserName   string
-	Amount       string
+	TransactionID uuid.UUID
+	FromUserID    uuid.UUID
+	FromUserName  string
+	ToUserID      uuid.UUID
+	ToUserName    string
+	Amount        string
 }
 
 func (q *Queries) GetSimplifiedTransactions(ctx context.Context, groupID uuid.UUID) ([]GetSimplifiedTransactionsRow, error) {
@@ -133,6 +145,7 @@ func (q *Queries) GetSimplifiedTransactions(ctx context.Context, groupID uuid.UU
 	for rows.Next() {
 		var i GetSimplifiedTransactionsRow
 		if err := rows.Scan(
+			&i.TransactionID,
 			&i.FromUserID,
 			&i.FromUserName,
 			&i.ToUserID,
@@ -150,6 +163,114 @@ func (q *Queries) GetSimplifiedTransactions(ctx context.Context, groupID uuid.UU
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUserSettleTransaction = `-- name: GetUserSettleTransaction :one
+SELECT
+    st.from_user AS from_user_id,
+    u_from.name AS from_user_name,
+    st.to_user AS to_user_id,
+    u_to.name AS to_user_name,
+    st.amount
+FROM simplified_transactions st
+JOIN users u_from ON st.from_user = u_from.id
+JOIN users u_to ON st.to_user = u_to.id
+WHERE st.id=$1
+`
+
+type GetUserSettleTransactionRow struct {
+	FromUserID   uuid.UUID
+	FromUserName string
+	ToUserID     uuid.UUID
+	ToUserName   string
+	Amount       string
+}
+
+func (q *Queries) GetUserSettleTransaction(ctx context.Context, id uuid.UUID) (GetUserSettleTransactionRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserSettleTransaction, id)
+	var i GetUserSettleTransactionRow
+	err := row.Scan(
+		&i.FromUserID,
+		&i.FromUserName,
+		&i.ToUserID,
+		&i.ToUserName,
+		&i.Amount,
+	)
+	return i, err
+}
+
+const getUserSimplifiedTransaction = `-- name: GetUserSimplifiedTransaction :many
+SELECT
+    st.id AS transaction_id,
+    st.from_user AS from_user_id,
+    u_from.name AS from_user_name,
+    st.to_user AS to_user_id,
+    u_to.name AS to_user_name,
+    st.amount
+FROM simplified_transactions st
+JOIN users u_from ON st.from_user = u_from.id
+JOIN users u_to ON st.to_user = u_to.id
+WHERE group_id=$1 AND u_from.id=$2
+`
+
+type GetUserSimplifiedTransactionParams struct {
+	GroupID uuid.UUID
+	ID      uuid.UUID
+}
+
+type GetUserSimplifiedTransactionRow struct {
+	TransactionID uuid.UUID
+	FromUserID    uuid.UUID
+	FromUserName  string
+	ToUserID      uuid.UUID
+	ToUserName    string
+	Amount        string
+}
+
+func (q *Queries) GetUserSimplifiedTransaction(ctx context.Context, arg GetUserSimplifiedTransactionParams) ([]GetUserSimplifiedTransactionRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUserSimplifiedTransaction, arg.GroupID, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserSimplifiedTransactionRow
+	for rows.Next() {
+		var i GetUserSimplifiedTransactionRow
+		if err := rows.Scan(
+			&i.TransactionID,
+			&i.FromUserID,
+			&i.FromUserName,
+			&i.ToUserID,
+			&i.ToUserName,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateTransaction = `-- name: UpdateTransaction :exec
+UPDATE simplified_transactions 
+SET amount=$1
+WHERE id=$2
+`
+
+type UpdateTransactionParams struct {
+	Amount string
+	ID     uuid.UUID
+}
+
+func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) error {
+	_, err := q.db.ExecContext(ctx, updateTransaction, arg.Amount, arg.ID)
+	return err
 }
 
 const updateUserDebts = `-- name: UpdateUserDebts :one

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -15,41 +16,41 @@ import (
 // Adds an expense to a specific group and splits among group expense members
 // Expects a json body of expense details and a list of participants included in payment
 // Uses two sql query functions AddGroupExpense and AddGroupExpenseMembers
-func(cfg *apiConfig) addGroupExpense(c *gin.Context){
-	var reqDetails struct{
-		Title		string	`json:"title" binding:"required"`
-		Description	string	`json:"description"`
-		Amount		string	`json:"amount" binding:"required"`
-		Participants []struct{
-			ID	uuid.UUID	`json:"userID" binding:"required"`
-			Amount	string	`json:"amount" binding:"required"`
+func (cfg *apiConfig) addGroupExpense(c *gin.Context) {
+	var reqDetails struct {
+		Title        string `json:"title" binding:"required"`
+		Description  string `json:"description"`
+		Amount       string `json:"amount" binding:"required"`
+		Participants []struct {
+			ID     uuid.UUID `json:"userID" binding:"required"`
+			Amount string    `json:"amount" binding:"required"`
 		} `json:"participants" binding:"required"`
 	}
 	// Bind JSON
 	err := c.ShouldBindJSON(&reqDetails)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
-		return 
+		return
 	}
 
-	// Check if the split amount among members equals to 
+	// Check if the split amount among members equals to
 	var sum float64
 	sum = 0
-	for _, item := range reqDetails.Participants{
+	for _, item := range reqDetails.Participants {
 		val, _ := strconv.ParseFloat(item.Amount, 64)
 		sum = sum + val
 	}
 	val, _ := strconv.ParseFloat(reqDetails.Amount, 64)
-	if(sum != val){
+	if sum != val {
 		utils.ErrorJSON(c, 400, utils.InvalidError, utils.AmountSplitError, nil)
-		return 
+		return
 	}
 
 	// parsing userID and groupID
 	tempUID, exists := c.Get("userID")
 	if !exists {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.MiddlewareError, nil)
-		return 
+		return
 	}
 	userID := tempUID.(uuid.UUID)
 
@@ -59,61 +60,60 @@ func(cfg *apiConfig) addGroupExpense(c *gin.Context){
 	// description sql.NullString
 	descriptionVal := sql.NullString{
 		String: reqDetails.Description,
-		Valid: reqDetails.Description != "",
+		Valid:  reqDetails.Description != "",
 	}
 
 	expense, err := cfg.DB.AddGroupExpense(c, db.AddGroupExpenseParams{
-		Title: reqDetails.Title,
+		Title:       reqDetails.Title,
 		Description: descriptionVal,
-		GroupID: groupID,
-		CreatedBy: userID,
-		Amount: reqDetails.Amount,
+		GroupID:     groupID,
+		CreatedBy:   userID,
+		Amount:      reqDetails.Amount,
 	})
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-		return 
+		return
 	}
 
 	// Add members recurrently based on request participants
-	for _ , member := range reqDetails.Participants{
+	for _, member := range reqDetails.Participants {
 		_, err := cfg.DB.AddGroupExpenseMembers(c, db.AddGroupExpenseMembersParams{
 			GroupExpenseID: expense.ID,
-			UserID: member.ID,
-			Amount: member.Amount,
+			UserID:         member.ID,
+			Amount:         member.Amount,
 		})
-		if err != nil{
+		if err != nil {
 			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 			return
 		}
 	}
 
 	// add members debt or net balance owes/owed
-	for _, member := range reqDetails.Participants{
+	for _, member := range reqDetails.Participants {
 		_, err := cfg.DB.UpdateUserDebts(c, db.UpdateUserDebtsParams{
-			FromUser: member.ID,
-			ToUser: userID,
-			GroupID: groupID,
-			Amount: member.Amount,
+			FromUser:  member.ID,
+			ToUser:    userID,
+			GroupID:   groupID,
+			Amount:    member.Amount,
 			ExpenseID: expense.ID,
 		})
-		if err != nil{
+		if err != nil {
 			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 			return
 		}
-	} 
+	}
 
 	c.IndentedJSON(200, utils.MessageObj("successfully added"))
 }
 
-
 // getAllGroupExpenses
 // Retrieves all the expense of a specific group
-func(cfg *apiConfig) getAllGroupExpenses(c *gin.Context){
+func (cfg *apiConfig) getAllGroupExpenses(c *gin.Context) {
 	tempGID := c.Param("group_id")
 	groupID := uuid.MustParse(tempGID)
 
 	expenses, err := cfg.DB.GetAllGroupExpenses(c, groupID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 		return
 	}
@@ -121,29 +121,28 @@ func(cfg *apiConfig) getAllGroupExpenses(c *gin.Context){
 	c.IndentedJSON(201, expenses)
 }
 
-
 // updateGroupExpense
-// updates a specific group expense 
+// updates a specific group expense
 // uses sql query functions GetGroupExpenseByID, UpdateGroupExpense, GetGroupExpenseMembers
-func(cfg *apiConfig) updateGroupExpense(c *gin.Context){
-	var reqDetails struct{
-		Title		string	`json:"title"`
-		Description	string	`json:"description"`
-		Amount		string	`json:"amount"`	
+func (cfg *apiConfig) updateGroupExpense(c *gin.Context) {
+	var reqDetails struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Amount      string `json:"amount"`
 	}
 
 	err := c.ShouldBindJSON(&reqDetails)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
-		return 
-	} 
+		return
+	}
 
 	tempEID := c.Param("expense_id")
 	expID := uuid.MustParse(tempEID)
-	
+
 	// Retrive expense details
 	expense, err := cfg.DB.GetGroupExpenseByID(c, expID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, nil)
 		return
 	}
@@ -156,61 +155,61 @@ func(cfg *apiConfig) updateGroupExpense(c *gin.Context){
 	}
 	userID := tempUID.(uuid.UUID)
 
-	// check if request sender is creator only then update 
-	if(userID != expense.CreatedBy){
+	// check if request sender is creator only then update
+	if userID != expense.CreatedBy {
 		utils.ErrorJSON(c, 401, utils.UnauthorizedError, utils.InvalidAcess, nil)
 		return
-	} 
+	}
 
 	// Check if fields empty
 	amountCheck := true
-	if reqDetails.Title == ""{
+	if reqDetails.Title == "" {
 		reqDetails.Title = expense.Title
 	}
-	if reqDetails.Description == ""{
+	if reqDetails.Description == "" {
 		reqDetails.Description = expense.Description.String
 	}
-	if reqDetails.Amount == ""{
+	if reqDetails.Amount == "" {
 		reqDetails.Amount = expense.Amount
 		amountCheck = false
 	}
 
 	descriptionVal := sql.NullString{
 		String: reqDetails.Description,
-		Valid: reqDetails.Description != "",
+		Valid:  reqDetails.Description != "",
 	}
 	// Update Details in DB
 	err = cfg.DB.UpdateGroupExpense(c, db.UpdateGroupExpenseParams{
-		Title: reqDetails.Title,
+		Title:       reqDetails.Title,
 		Description: descriptionVal,
-		Amount: reqDetails.Amount,
-		ID: expID,
+		Amount:      reqDetails.Amount,
+		ID:          expID,
 	})
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-		return 
+		return
 	}
 
 	if amountCheck {
 		amount, _ := strconv.ParseFloat(reqDetails.Amount, 64)
 
 		members, err := cfg.DB.GetGroupExpenseMembersByID(c, expID)
-		if err != nil{
+		if err != nil {
 			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-			return 
+			return
 		}
-		
+
 		number := len(members)
 		equalAmount := amount / float64(number)
 		finalAmount := strconv.FormatFloat(equalAmount, 'f', 2, 64)
-		for _, member := range members{
+		for _, member := range members {
 			err := cfg.DB.UpdateGroupExpenseMembers(c, db.UpdateGroupExpenseMembersParams{
 				Amount: finalAmount,
-				ID: member.ID,
+				ID:     member.ID,
 			})
-			if err != nil{
+			if err != nil {
 				utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-				return 
+				return
 			}
 		}
 	}
@@ -220,7 +219,7 @@ func(cfg *apiConfig) updateGroupExpense(c *gin.Context){
 
 // deleteGroupExpense
 // deletes a group expense from db by specific id
-func(cfg *apiConfig) deleteGroupExpense(c *gin.Context){
+func (cfg *apiConfig) deleteGroupExpense(c *gin.Context) {
 	tempEID := c.Param("expense_id")
 	expID := uuid.MustParse(tempEID)
 
@@ -232,71 +231,69 @@ func(cfg *apiConfig) deleteGroupExpense(c *gin.Context){
 	userID := tempUID.(uuid.UUID)
 
 	expense, err := cfg.DB.GetGroupExpenseByID(c, expID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 		return
 	}
 
-	if(expense.CreatedBy != userID){
+	if expense.CreatedBy != userID {
 		utils.ErrorJSON(c, 401, utils.UnauthorizedError, utils.InvalidAcess, nil)
 		return
 	}
 
 	err = cfg.DB.DeleteGroupExpense(c, expID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 		return
 	}
 
 	c.IndentedJSON(204, utils.MessageObj("deleted"))
 
-}	
-
+}
 
 // fetchNetBalance
 // retrieves the net balance of a person if he is in +ve or -ve
-func(cfg *apiConfig) fetchNetBalance(c *gin.Context){
+func (cfg *apiConfig) fetchNetBalance(c *gin.Context) {
 	tempGID := c.Param("group_id")
 	groupID := uuid.MustParse(tempGID)
 
 	netBalances, err := cfg.DB.FetchNetBalance(c, groupID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-		return 
+		return
 	}
-	
+
 	c.IndentedJSON(200, netBalances)
 }
 
-
 // minimizeTransactions
 // return minimum transactions to make for settling up debts
-func(cfg *apiConfig) minimizeTransactions(c *gin.Context){
+func (cfg *apiConfig) minimizeTransactions(c *gin.Context) {
 	tempGID := c.Param("group_id")
 	groupID := uuid.MustParse(tempGID)
 
 	netBalances, err := cfg.DB.FetchNetBalance(c, groupID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 		return
 	}
 
 	newBalances := make(map[uuid.UUID]string)
 
-	for _, item  := range netBalances{
+	for _, item := range netBalances {
 		newBalances[item.UserID] = item.Netbalance
 	}
 
 	transactions := utils.MinimizeDebts(newBalances)
 
-	for _, record := range transactions{
+	for _, record := range transactions {
 		_, err := cfg.DB.AddSimplifiedTransaction(c, db.AddSimplifiedTransactionParams{
-			GroupID: groupID,
+			GroupID:  groupID,
 			FromUser: record.FromUserID,
-			ToUser: record.ToUserID,
-			Amount: record.Amount,
+			ToUser:   record.ToUserID,
+			Amount:   record.Amount,
 		})
-		if err != nil{
+		if err != nil {
 			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 			return
 		}
@@ -305,17 +302,16 @@ func(cfg *apiConfig) minimizeTransactions(c *gin.Context){
 	c.IndentedJSON(201, utils.MessageObj("successfully minimized"))
 }
 
-
 // fetchMinimizedTransactions
 // Retrieve the minimized transactions from DB
-func(cfg *apiConfig) fetchMinimizedTransactions(c *gin.Context){
+func (cfg *apiConfig) fetchMinimizedTransactions(c *gin.Context) {
 	tempGID := c.Param("group_id")
 	groupID := uuid.MustParse(tempGID)
 
 	records, err := cfg.DB.GetSimplifiedTransactions(c, groupID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-		return 
+		return
 	}
 
 	c.IndentedJSON(200, records)
@@ -323,61 +319,58 @@ func(cfg *apiConfig) fetchMinimizedTransactions(c *gin.Context){
 
 // getGroupTotalExpense
 // retrieves a groups total expense
-func(cfg *apiConfig) getGroupTotalExpense(c *gin.Context){
+func (cfg *apiConfig) getGroupTotalExpense(c *gin.Context) {
 	tempGID := c.Param("group_id")
 	groupID, err := uuid.Parse(tempGID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
 		return
 	}
 
 	data, err := cfg.DB.GetTotalGroupExpense(c, groupID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
 		return
 	}
 
-	c.IndentedJSON(200, gin.H{"total_expense":data})
+	c.IndentedJSON(200, gin.H{"total_expense": data})
 }
-
 
 // getGroupMembersTotal
 // retrieves each members total contribution for the expense group specified
-func(cfg *apiConfig) getGroupMembersTotal(c *gin.Context){
+func (cfg *apiConfig) getGroupMembersTotal(c *gin.Context) {
 	tempUID, exists := c.Get("userID")
 	if !exists {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.MiddlewareError, nil)
-		return 
+		return
 	}
 	userID := tempUID.(uuid.UUID)
 
-
 	tempGID := c.Param("group_id")
 	groupID, err := uuid.Parse(tempGID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
 		return
 	}
 
-	_, err =cfg.DB.CheckMemeber(c, db.CheckMemeberParams{
+	_, err = cfg.DB.CheckMemeber(c, db.CheckMemeberParams{
 		GroupID: groupID,
-		UserID: userID,
+		UserID:  userID,
 	})
 	if err != nil {
-		if strings.Contains(err.Error(), "no rows"){
+		if strings.Contains(err.Error(), "no rows") {
 			utils.ErrorJSON(c, 401, utils.UnauthorizedError, utils.InvalidAcess, err)
 			return
-		}else{
+		} else {
 			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-			return 
+			return
 		}
 	}
-	
 
 	data, err := cfg.DB.GetMembersTotalExpense(c, groupID)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-		return 
+		return
 	}
 
 	c.IndentedJSON(200, data)
@@ -385,21 +378,102 @@ func(cfg *apiConfig) getGroupMembersTotal(c *gin.Context){
 
 // getGroupExpenseDetails
 // fetchs details(participants, shares) of a groupExpense specified via ID
-func(cfg *apiConfig) getGroupExpenseDetails(c *gin.Context){
+func (cfg *apiConfig) getGroupExpenseDetails(c *gin.Context) {
 
 	tempEID := c.Param("expense_id")
 	expenseID, err := uuid.Parse(tempEID)
 
 	if err != nil {
 		utils.ErrorJSON(c, 400, utils.InvalidError, utils.IDParseError, err)
-		return 
+		return
 	}
 
 	data, err := cfg.DB.GetGroupExpenseDetails(c, expenseID)
 	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
-		return 
+		return
 	}
 
-	c.IndentedJSON(200, data);
+	c.IndentedJSON(200, data)
+}
+
+// getUserSimplifiedTransction
+// fetches a users transactions to be made
+func (cfg *apiConfig) getUserSimplifiedTransction(c *gin.Context) {
+	tempUID, exists := c.Get("userID")
+	if !exists {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.MiddlewareError, nil)
+		return
+	}
+	userID := tempUID.(uuid.UUID)
+
+	tempGID := c.Param("group_id")
+	groupID, err := uuid.Parse(tempGID)
+	if err != nil {
+		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
+		return
+	}
+
+	transactions, err := cfg.DB.GetUserSimplifiedTransaction(c, db.GetUserSimplifiedTransactionParams{
+		GroupID: groupID,
+		ID:      userID,
+	})
+	if err != nil {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return
+	}
+
+	c.IndentedJSON(200, transactions)
+}
+
+// settleTransaction
+// settles transaction based on amount if all paid then deletes
+func (cfg *apiConfig) settleTransaction(c *gin.Context) {
+	var reqDetails struct {
+		Amount string `json:"amount" binding:"required"`
+	}
+
+	err := c.BindJSON(&reqDetails)
+	if err != nil {
+		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
+		return
+	}
+
+	tempTID := c.Param("transaction_id")
+	transactionID, err := uuid.Parse(tempTID)
+	if err != nil {
+		utils.ErrorJSON(c, 400, utils.InvalidError, utils.RequestBodyError, err)
+		return
+	}
+
+	settleTransaction, err := cfg.DB.GetUserSettleTransaction(c, transactionID)
+	if err != nil {
+		utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+		return
+	}
+
+	reqAmount, _ := strconv.ParseFloat(reqDetails.Amount, 64)
+	settleAmount, _ := strconv.ParseFloat(settleTransaction.Amount, 64)
+	if reqAmount > settleAmount {
+		utils.ErrorJSON(c, 400, utils.InvalidError, "request body amount is greater than settle amount", nil)
+		return
+	} else if reqAmount < settleAmount {
+		newAmount := settleAmount - reqAmount
+		err = cfg.DB.UpdateTransaction(c, db.UpdateTransactionParams{
+			Amount: fmt.Sprintf("%v", newAmount),
+			ID:     transactionID,
+		})
+		if err != nil {
+			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+			return
+		}
+	} else {
+		err = cfg.DB.DeleteTransaction(c, transactionID)
+		if err != nil {
+			utils.ErrorJSON(c, 500, utils.InternalError, utils.DatabaseError, err)
+			return
+		}
+	}
+
+	c.IndentedJSON(204, utils.MessageObj("deleted success"))
 }

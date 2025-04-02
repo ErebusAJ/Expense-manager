@@ -45,6 +45,7 @@ RETURNING *;
 
 -- name: GetSimplifiedTransactions :many
 SELECT
+    st.id AS transaction_id,
     st.from_user AS from_user_id,
     u_from.name AS from_user_name,
     st.to_user AS to_user_id,
@@ -54,3 +55,42 @@ FROM simplified_transactions st
 JOIN users u_from ON st.from_user = u_from.id
 JOIN users u_to ON st.to_user = u_to.id
 WHERE group_id=$1;
+
+-- name: GetUserSimplifiedTransaction :many
+SELECT
+    st.id AS transaction_id,
+    st.from_user AS from_user_id,
+    u_from.name AS from_user_name,
+    st.to_user AS to_user_id,
+    u_to.name AS to_user_name,
+    st.amount
+FROM simplified_transactions st
+JOIN users u_from ON st.from_user = u_from.id
+JOIN users u_to ON st.to_user = u_to.id
+WHERE group_id=$1 AND u_from.id=$2;
+
+
+-- name: UpdateTransaction :exec
+UPDATE simplified_transactions 
+SET amount=$1
+WHERE id=$2;
+
+-- name: DeleteTransaction :exec
+DELETE FROM simplified_transactions 
+WHERE id=$1;
+
+-- name: GetUserSettleTransaction :one
+SELECT
+    st.from_user AS from_user_id,
+    u_from.name AS from_user_name,
+    st.to_user AS to_user_id,
+    u_to.name AS to_user_name,
+    st.amount
+FROM simplified_transactions st
+JOIN users u_from ON st.from_user = u_from.id
+JOIN users u_to ON st.to_user = u_to.id
+WHERE st.id=$1;
+
+
+
+
