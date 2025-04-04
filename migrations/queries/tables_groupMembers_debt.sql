@@ -15,7 +15,7 @@ WITH group_members_debt AS(
         ep.amount AS share
     FROM
         group_expense e
-    JOIN
+    INNER JOIN
         group_expense_participants ep ON e.id = ep.group_expense_id
     WHERE e.group_id=$1
 )
@@ -52,8 +52,8 @@ SELECT
     u_to.name AS to_user_name,
     st.amount
 FROM simplified_transactions st
-JOIN users u_from ON st.from_user = u_from.id
-JOIN users u_to ON st.to_user = u_to.id
+INNER JOIN users u_from ON st.from_user = u_from.id
+INNER JOIN users u_to ON st.to_user = u_to.id
 WHERE group_id=$1;
 
 -- name: GetUserSimplifiedTransaction :many
@@ -65,8 +65,8 @@ SELECT
     u_to.name AS to_user_name,
     st.amount
 FROM simplified_transactions st
-JOIN users u_from ON st.from_user = u_from.id
-JOIN users u_to ON st.to_user = u_to.id
+INNER JOIN users u_from ON st.from_user = u_from.id
+INNER JOIN users u_to ON st.to_user = u_to.id
 WHERE group_id=$1 AND u_from.id=$2;
 
 
@@ -87,8 +87,8 @@ SELECT
     u_to.name AS to_user_name,
     st.amount
 FROM simplified_transactions st
-JOIN users u_from ON st.from_user = u_from.id
-JOIN users u_to ON st.to_user = u_to.id
+INNER JOIN users u_from ON st.from_user = u_from.id
+INNER JOIN users u_to ON st.to_user = u_to.id
 WHERE st.id=$1;
 
 
