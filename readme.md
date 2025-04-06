@@ -167,6 +167,7 @@ The API Endpoints for the same are:
 | `/group/:group_id/member` | `GET` | Retrieves a particular group's members | Yes (JWT) |
 | `/group/:group_id/member/:user_id` | `DELETE` | Deletes a user from a group | Yes (JWT) |
 | `/group/:group_id/member/` | `DELETE` | User leave group | Yes (JWT) |
+| `/group/:group_id/invite-email` | `POST` | User send group invite | Yes (JWT) |
 
 
 ## ***10. Groups Expenses and Members***

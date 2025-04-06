@@ -2,14 +2,13 @@ package utils
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 	"gopkg.in/gomail.v2"
 )
 
-func SendEmail(to, body string) error{
+func SendEmail(to, subject, body string) error{
 	godotenv.Load()
 	
 	email := os.Getenv("EMAIL_USER")
@@ -20,9 +19,9 @@ func SendEmail(to, body string) error{
 
 	m := gomail.NewMessage()
 
-	m.SetHeader("From", "dev.erebusaj@gmail.com")
+	m.SetAddressHeader("From", email, "Budget Breezer")
 	m.SetHeader("To", to)
-	m.SetHeader("Subject", "Password request link")
+	m.SetHeader("Subject", subject)
 	m.SetBody("text/plain", body)
 
 	d := gomail.NewDialer("smtp.gmail.com", 587, email, pass)
@@ -31,6 +30,5 @@ func SendEmail(to, body string) error{
 		return err
 	}
 
-	log.Println("email sent successfully")
 	return nil
 }

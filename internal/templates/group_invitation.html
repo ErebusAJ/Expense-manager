@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Group</title>
+    <!-- <link rel="stylesheet" href="/internal/static/style.css"> -->
+    <style>
+        :root {
+            --primary-color: #26A69A;
+            --primary-dark: #1E867A;
+            --primary-light: #a9dfbf;
+            --text-color: #333;
+            --white: #fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #1E1E1E;
+            color: var(--text-color);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--primary-color);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+        }
+
+        .navbar-item {
+            margin-left: 1.5rem;
+        }
+
+        .navbar-link {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar-link:hover {
+            color: var(--primary-light);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--white);
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .join-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .reject-card {
+            display: none;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .circle-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            border: 5px solid var(--primary-color);
+            background-color: var(--primary-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .circle-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .join-heading {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-accept {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-accept:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-reject {
+            background-color: #e0e0e0;
+            color: var(--text-color);
+        }
+
+        .btn-reject:hover {
+            background-color: #d0d0d0;
+        }
+
+        .success-card {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 1rem auto;
+            border: 4px solid var(--primary-light);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .navbar-menu {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                flex-direction: column;
+                background-color: var(--primary-color);
+                height: 0;
+                overflow: hidden;
+                transition: height 0.3s ease;
+            }
+
+            .navbar-menu.active {
+                height: auto;
+                padding: 1rem 0;
+            }
+
+            .navbar-item {
+                margin: 0.5rem 0;
+                text-align: center;
+            }
+
+            .join-card {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .circle-image {
+                width: 120px;
+                height: 120px;
+            }
+
+            .btn-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">Budget Breezer</a>
+    </nav>
+
+    <div class="container">
+        <div class="join-card" id="joinCard">
+            <div class="circle-image">
+                <img src="{{ .ImageUrl }}" alt="Group Image"
+                    onerror="https://static.vecteezy.com/system/resources/previews/006/732/119/non_2x/account-icon-sign-symbol-logo-design-free-vector.jpg">
+            </div>
+            <h2 class="join-heading">Do you want to join <h2 class="join-heading">{{ .Name }}</h2>
+                <h2>group ?</h2>
+            </h2>
+            <div class="btn-container">
+                <button class="btn btn-accept" id="acceptBtn">Accept</button>
+                <button class="btn btn-reject" id="rejectBtn">Reject</button>
+            </div>
+            <div class="loading-spinner" id="loadingSpinner"></div>
+        </div>
+
+        <!-- Failed card -->
+        <div class="reject-card" id="invalidCard">
+            <div class="circle-image">
+                <img src="https://www.shutterstock.com/image-vector/doodle-illustration-cute-sad-ghost-260nw-1619602744.jpg"
+                    alt=" Image">
+            </div>
+            <h2 class="join-heading">Error joining<h2 class="join-heading">{{ .Name }}</h2>
+        </div>
+
+        <div class="reject-card" id="rejectCard">
+            <div class="circle-image">
+                <img src="https://www.shutterstock.com/image-vector/doodle-illustration-cute-sad-ghost-260nw-1619602744.jpg"
+                    alt=" Image">
+            </div>
+            <h2 class="join-heading">Rejected <h2 class="join-heading">{{ .Name }} invite.</h2>
+        </div>
+
+        <div class="reject-card" id="successCard">
+            <div class="circle-image">
+                <img src="https://i.pinimg.com/564x/1e/68/be/1e68bec760a9661bf12b5fbb62800b8b.jpg" alt=" Image">
+            </div>
+            <h2 class="success-message">Group Joined Successfully!</h2>
+            <p style="color: #fff;">You're now a member of this group.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Group join functionality
+            const acceptBtn = document.getElementById('acceptBtn');
+            const rejectBtn = document.getElementById('rejectBtn');
+            const joinCard = document.getElementById('joinCard');
+            const successCard = document.getElementById('successCard');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const invalidCard = document.getElementById('invalidCard');
+            const rejectCard = document.getElementById('rejectCard');
+
+            // Debug to ensure elements are found
+            console.log("Accept button:", acceptBtn);
+            console.log("Loading spinner:", loadingSpinner);
+
+            acceptBtn.addEventListener('click', function () {
+                console.log("Accept button clicked");
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+                acceptBtn.disabled = true;
+                rejectBtn.disabled = true;
+
+                // Simulate API call
+                setTimeout(() => {
+                    joinGroup()
+                        .then(response => {
+                            console.log("API response:", response);
+                            if (response.success) {
+                                // Hide join card and show success card
+                                joinCard.style.display = 'none';
+                                successCard.style.display = 'block';
+                            } else {
+                                // alert('Failed to join group: ' + response.message);
+                                joinCard.style.display = 'none'
+                                invalidCard.style.display = 'block';
+                            }
+                            loadingSpinner.style.display = 'none';
+                        })
+                        .catch(error => {
+                            console.error("API error:", error);
+                            alert('Error: ' + error.message);
+                            loadingSpinner.style.display = 'none';
+                            acceptBtn.disabled = false;
+                            rejectBtn.disabled = false;
+                        });
+                }, 1500); // Simulated delay
+            });
+
+            rejectBtn.addEventListener('click', () => {
+                // Simply reload the page or redirect
+                joinCard.style.display = 'none';
+                rejectCard.style.display = 'block';
+            });
+        });
+
+        // Simulated API call function
+        function joinGroup() {
+            return fetch('http://localhost:8080/group-invite/{{ .GroupID }}/{{ .MemberID }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => {
+                    if (response.status === 201) {
+                        return { success: true };
+                    } else {
+                        return {
+                            success: false,
+                            message: `Server responded with status ${response.status}`
+                        };
+                    }
+                })
+                .catch(err => {
+                    throw new Error("Network error: " + err.message);
+                });
+        }
+
+    </script>
+</body>
+
+</html>

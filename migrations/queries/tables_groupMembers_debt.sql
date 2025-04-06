@@ -22,6 +22,7 @@ WITH group_members_debt AS(
 SELECT
     u.id AS user_id,
     u.name,
+    u.image_url,
     COALESCE(SUM(
         CASE
             WHEN ud.member_id = ud.payer_id THEN ud.total_amount - ud.share
@@ -67,7 +68,7 @@ SELECT
 FROM simplified_transactions st
 INNER JOIN users u_from ON st.from_user = u_from.id
 INNER JOIN users u_to ON st.to_user = u_to.id
-WHERE group_id=$1 AND u_from.id=$2;
+WHERE group_id=$1 AND (u_from.id=$2 OR u_to.id=$2);
 
 
 -- name: UpdateTransaction :exec

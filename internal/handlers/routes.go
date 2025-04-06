@@ -8,20 +8,20 @@ import (
 	"github.com/ErebusAJ/expense-manager/internal/middleware"
 	"github.com/ErebusAJ/expense-manager/internal/utils"
 	"github.com/joho/godotenv"
-	
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
-type apiConfig struct{
+type apiConfig struct {
 	DB *db.Queries
 }
 
 // ROUTES
-func RegisterRoutes(r *gin.Engine){
+func RegisterRoutes(r *gin.Engine) {
 	//Establishing DB connections for handlers
 	DB, err := utils.ConnectDB()
-	if err != nil{
+	if err != nil {
 		log.Fatalf("failed to connect to DB: %v", err)
 	}
 
@@ -37,10 +37,13 @@ func RegisterRoutes(r *gin.Engine){
 	// Secret key
 	godotenv.Load()
 	signKey := os.Getenv("SECRET_KEY")
-	if signKey == ""{
+	if signKey == "" {
 		log.Printf("unable to fetch signed key")
 	}
 
+	// LOAD GLOBAL HTML
+	// r.Static("/static", "./internal/static")
+	r.LoadHTMLGlob("internal/templates/*")
 	//AUTH ROUTES
 	protected := r.Group("/auth")
 	protected.Use(middleware.AuthMiddleware(signKey))
@@ -62,7 +65,8 @@ func RegisterRoutes(r *gin.Engine){
 		protected.POST("/group", apiCfg.userCreateGroup)
 		protected.PUT("/group/:group_id", apiCfg.updateGroupDetails)
 		protected.DELETE("/group/:group_id", apiCfg.deleteUserGroup)
-		
+		protected.POST("/group/:group_id/invite-email", apiCfg.sendGroupInvite)
+
 		protected.POST("/group/:group_id/member/:user_id", apiCfg.addGroupMember)
 		protected.GET("/group/:group_id/member", apiCfg.getGroupMembers)
 		protected.DELETE("/group/:group_id/member/:user_id", apiCfg.deleteGroupMember)
@@ -81,7 +85,7 @@ func RegisterRoutes(r *gin.Engine){
 		// GROUP EXPENSE ANALYTICS
 		protected.GET("/group/:group_id/expense-total", apiCfg.getGroupTotalExpense)
 		protected.GET("/group/:group_id/member-total", apiCfg.getGroupMembersTotal)
-		
+
 		//GROUP MEMBERS NET BALANCE
 		protected.GET("/group/:group_id/netbalance", apiCfg.fetchNetBalance)
 		protected.POST("/group/:group_id/minimizeTransaction", apiCfg.minimizeTransactions)
@@ -89,8 +93,7 @@ func RegisterRoutes(r *gin.Engine){
 		protected.GET("/group/:group_id/user-transaction", apiCfg.getUserSimplifiedTransction)
 		protected.POST("/group/:group_id/user-transaction/:transaction_id", apiCfg.settleTransaction)
 
-
-	} 
+	}
 	// USER PASS RESET
 	r.POST("/v1/user/password-reset", apiCfg.resetPasswordRequest)
 	r.POST("/v1/user/password-reset/:token", apiCfg.resetPasswordConfirm)
@@ -104,4 +107,8 @@ func RegisterRoutes(r *gin.Engine){
 		adminProtected.GET("/user/:id", apiCfg.adminGetUserByID)
 		adminProtected.DELETE("/user/:id", apiCfg.adminDeleteUserByID)
 	}
+
+	// EXPOSES ROUTES
+	r.GET("/group-invite/:группа/:пользователь", apiCfg.invitationPage)
+	r.POST("/group-invite/:группа/:пользователь", apiCfg.acceptInvitaion)
 }

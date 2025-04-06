@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -63,13 +64,14 @@ WITH group_members_debt AS(
         ep.amount AS share
     FROM
         group_expense e
-    JOIN
+    INNER JOIN
         group_expense_participants ep ON e.id = ep.group_expense_id
     WHERE e.group_id=$1
 )
 SELECT
     u.id AS user_id,
     u.name,
+    u.image_url,
     COALESCE(SUM(
         CASE
             WHEN ud.member_id = ud.payer_id THEN ud.total_amount - ud.share
@@ -86,6 +88,7 @@ GROUP BY u.id
 type FetchNetBalanceRow struct {
 	UserID     uuid.UUID
 	Name       string
+	ImageUrl   sql.NullString
 	Netbalance string
 }
 
@@ -98,7 +101,12 @@ func (q *Queries) FetchNetBalance(ctx context.Context, groupID uuid.UUID) ([]Fet
 	var items []FetchNetBalanceRow
 	for rows.Next() {
 		var i FetchNetBalanceRow
-		if err := rows.Scan(&i.UserID, &i.Name, &i.Netbalance); err != nil {
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Name,
+			&i.ImageUrl,
+			&i.Netbalance,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -121,8 +129,8 @@ SELECT
     u_to.name AS to_user_name,
     st.amount
 FROM simplified_transactions st
-JOIN users u_from ON st.from_user = u_from.id
-JOIN users u_to ON st.to_user = u_to.id
+INNER JOIN users u_from ON st.from_user = u_from.id
+INNER JOIN users u_to ON st.to_user = u_to.id
 WHERE group_id=$1
 `
 
@@ -173,8 +181,8 @@ SELECT
     u_to.name AS to_user_name,
     st.amount
 FROM simplified_transactions st
-JOIN users u_from ON st.from_user = u_from.id
-JOIN users u_to ON st.to_user = u_to.id
+INNER JOIN users u_from ON st.from_user = u_from.id
+INNER JOIN users u_to ON st.to_user = u_to.id
 WHERE st.id=$1
 `
 
@@ -208,9 +216,9 @@ SELECT
     u_to.name AS to_user_name,
     st.amount
 FROM simplified_transactions st
-JOIN users u_from ON st.from_user = u_from.id
-JOIN users u_to ON st.to_user = u_to.id
-WHERE group_id=$1 AND u_from.id=$2
+INNER JOIN users u_from ON st.from_user = u_from.id
+INNER JOIN users u_to ON st.to_user = u_to.id
+WHERE group_id=$1 AND (u_from.id=$2 OR u_to.id=$2)
 `
 
 type GetUserSimplifiedTransactionParams struct {

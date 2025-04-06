@@ -10,7 +10,7 @@ WHERE id = $1;
 SELECT * FROM users;
 
 -- name: GetUserByEmail :one
-SELECT id, password_hash, access_level FROM users
+SELECT id, name, password_hash, access_level FROM users
 WHERE email=$1;
 
 -- name: DeleteUserByID :exec

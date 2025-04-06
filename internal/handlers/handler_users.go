@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"context"
-	"math/rand"
 	"database/sql"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/ErebusAJ/expense-manager/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,12 +33,11 @@ func hashPassword(password string) (string, error) {
 
 func (cfg *apiConfig) registerUser(c *gin.Context) {
 	type user struct {
-		Name     	string    `json:"name" binding:"required"`
-		Email   	string    `json:"email" binding:"required"`
-		Password	string    `json:"password" binding:"required"`
-		ImageUrl 	string	  `json:"image_url"`	
+		Name     string `json:"name" binding:"required"`
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
+		ImageUrl string `json:"image_url"`
 	}
-	
 
 	var param user
 	err := c.BindJSON(&param)
@@ -52,22 +53,22 @@ func (cfg *apiConfig) registerUser(c *gin.Context) {
 		return
 	}
 
-	// initializing sql null string 
-	// assigning random image url 
+	// initializing sql null string
+	// assigning random image url
 	var imageURL sql.NullString
-	if param.ImageUrl == ""{
+	if param.ImageUrl == "" {
 		defaultImage := []string{
-    		"https://pintu-academy.pintukripto.com/wp-content/uploads/2023/09/image-43-1024x640.png",
-    		"https://i.pinimg.com/736x/1f/34/da/1f34da676bcaa3b81a3ed27303fce78f.jpg",
+			"https://pintu-academy.pintukripto.com/wp-content/uploads/2023/09/image-43-1024x640.png",
+			"https://i.pinimg.com/736x/1f/34/da/1f34da676bcaa3b81a3ed27303fce78f.jpg",
 			"https://i.pinimg.com/236x/5f/46/86/5f4686be55c9916e18cd0201606379c9.jpg",
 			"https://i.pinimg.com/474x/39/2e/0f/392e0f462c42eff5c04a836ef86fa3ca.jpg",
 		}
 
 		randInd := rand.Intn(len(defaultImage))
-		
+
 		imageURL = sql.NullString{
 			String: defaultImage[randInd],
-			Valid: defaultImage[randInd] != "",
+			Valid:  defaultImage[randInd] != "",
 		}
 
 	}
@@ -77,14 +78,13 @@ func (cfg *apiConfig) registerUser(c *gin.Context) {
 		Name:         param.Name,
 		Email:        param.Email,
 		PasswordHash: hashPass,
-		ImageUrl:	imageURL,
-
+		ImageUrl:     imageURL,
 	})
-	if err != nil{
+	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value") {
 			utils.ErrorJSON(c, http.StatusNotAcceptable, "email already in use", "unable to create user", err)
 			return
-		}else{
+		} else {
 			utils.ErrorJSON(c, http.StatusNotAcceptable, "unable to create user", "unable to create user", err)
 			return
 		}
@@ -274,9 +274,12 @@ func (cfg *apiConfig) resetPasswordRequest(c *gin.Context) {
 		return
 	}
 
-	url := fmt.Sprintf("http:localhost:8080/users/reset-password/%v", token)
+	godotenv.Load()
+	addr := os.Getenv("API")
 
-	err = utils.SendEmail(req.Email, fmt.Sprintf("Password rest link %v", url))
+	url := fmt.Sprintf("http://%v:8080/v1/user/password-reset/%v", addr, token)
+
+	err = utils.SendEmail(req.Email, "Password reset link", fmt.Sprintf("Password rest link %v", url))
 	if err != nil {
 		utils.ErrorJSON(c, 500, "unable to send reset link", "error sending mail to user", err)
 		return
@@ -315,22 +318,22 @@ func (cfg *apiConfig) resetPasswordConfirm(c *gin.Context) {
 	}
 
 	hashedPassword, err := hashPassword(req.NewPassword)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, "internal error", "error hashing password", err)
 		return
 	}
 
 	err = cfg.DB.SetPassword(context.Background(), db.SetPasswordParams{
 		PasswordHash: hashedPassword,
-		ID: token.UserID,
+		ID:           token.UserID,
 	})
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, "internal error", "error updating password in db", err)
 		return
 	}
 
 	err = cfg.DB.DeleteToken(context.Background(), reqToken)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, "internal error", "error deleting token from db", err)
 		return
 	}
