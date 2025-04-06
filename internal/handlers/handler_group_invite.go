@@ -35,13 +35,15 @@ func (cfg *apiConfig) invitationPage(c *gin.Context) {
 		return
 	}
 
-	log.Print(group.ImageUrl.String)
-
+	godotenv.Load()
+	addr := os.Getenv("API")
+	log.Println(addr)
 	c.HTML(200, "group_invitation.html", gin.H{
 		"GroupID":  group.ID,
 		"Name":     group.Name,
 		"ImageUrl": group.ImageUrl.String,
 		"MemberID": userID,
+		"Addr":     addr,
 	})
 }
 
@@ -125,7 +127,7 @@ func (cfg *apiConfig) sendGroupInvite(c *gin.Context) {
 	link := fmt.Sprintf("http://%v:8080/group-invite/%v/%v", addr, groupID, toUser.ID)
 	body := fmt.Sprintf("Hey %v, %v is sending you a group invite click here to join: %v", toUser.Name, fromUser.Name, link)
 	err = utils.SendEmail(reqDetails.Email, "Expense Group Invite", body)
-	if err != nil{
+	if err != nil {
 		utils.ErrorJSON(c, 500, utils.InternalError, "unable to send email", err)
 		return
 	}

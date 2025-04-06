@@ -347,7 +347,7 @@
 
         // Simulated API call function
         function joinGroup() {
-            return fetch('http://localhost:8080/group-invite/{{ .GroupID }}/{{ .MemberID }}', {
+            return fetch('http://{{ .Addr }}:8080/group-invite/{{ .GroupID }}/{{ .MemberID }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
