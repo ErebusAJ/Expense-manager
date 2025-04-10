@@ -93,6 +93,10 @@ func RegisterRoutes(r *gin.Engine) {
 		protected.GET("/group/:group_id/user-transaction", apiCfg.getUserSimplifiedTransction)
 		protected.POST("/group/:group_id/user-transaction/:transaction_id", apiCfg.settleTransaction)
 
+		//RAZORPAY ENDPOINTS
+		protected.POST("/payment/razor-pay/order", apiCfg.createRazorPayOrder)
+		protected.POST("/payment/razor-pay/verify", apiCfg.verifyRazorPayPayment)
+
 	}
 	// USER PASS RESET
 	r.POST("/v1/user/password-reset", apiCfg.resetPasswordRequest)
